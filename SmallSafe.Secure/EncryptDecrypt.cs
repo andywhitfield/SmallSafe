@@ -19,10 +19,12 @@ public class EncryptDecrypt : IDisposable, IEncryptDecrypt
         passwordToBytes.Salt = salt;
         algorithm.Key = passwordToBytes.GetBytes(algorithm.KeySize / 8);
         using MemoryStream encryptionStreamBacking = new();
-        using CryptoStream encrypt = new(encryptionStreamBacking, algorithm.CreateEncryptor(), CryptoStreamMode.Write);
-        var unencryptedValueBytes = Encoding.Unicode.GetBytes(unencryptedValue);
-        encrypt.Write(unencryptedValueBytes, 0, unencryptedValueBytes.Length);
-        encrypt.FlushFinalBlock();
+        using (CryptoStream encrypt = new(encryptionStreamBacking, algorithm.CreateEncryptor(), CryptoStreamMode.Write))
+        {
+            var unencryptedValueBytes = Encoding.Unicode.GetBytes(unencryptedValue);
+            encrypt.Write(unencryptedValueBytes, 0, unencryptedValueBytes.Length);
+            encrypt.FlushFinalBlock();
+        }
         return (Convert.ToBase64String(encryptionStreamBacking.ToArray()), algorithm.IV, salt);
     }
 
@@ -33,10 +35,12 @@ public class EncryptDecrypt : IDisposable, IEncryptDecrypt
         passwordToBytes.Salt = salt;
         algorithm.Key = passwordToBytes.GetBytes(algorithm.KeySize / 8);
         using MemoryStream decryptionStreamBacking = new();
-        using CryptoStream decrypt = new(decryptionStreamBacking, algorithm.CreateDecryptor(), CryptoStreamMode.Write);
-        var enryptedValueBytes = Convert.FromBase64String(encryptedValueBase64Encoded);
-        decrypt.Write(enryptedValueBytes, 0, enryptedValueBytes.Length);
-        decrypt.Flush();
+        using (CryptoStream decrypt = new(decryptionStreamBacking, algorithm.CreateDecryptor(), CryptoStreamMode.Write))
+        {
+            var enryptedValueBytes = Convert.FromBase64String(encryptedValueBase64Encoded);
+            decrypt.Write(enryptedValueBytes, 0, enryptedValueBytes.Length);
+            decrypt.Flush();
+        }
         return Encoding.Unicode.GetString(decryptionStreamBacking.ToArray());
     }
 
