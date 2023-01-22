@@ -3,14 +3,11 @@ using SmallSafe.Secure.Model;
 
 namespace SmallSafe.Secure.Services;
 
-public class SafeDbService
+public class SafeDbService : ISafeDbService
 {
     private readonly IEncryptDecrypt _encryptDecrypt;
 
-    public SafeDbService(IEncryptDecrypt encryptDecrypt)
-    {
-        _encryptDecrypt = encryptDecrypt;
-    }
+    public SafeDbService(IEncryptDecrypt encryptDecrypt) => _encryptDecrypt = encryptDecrypt;
 
     public async Task WriteAsync(string masterPassword, IEnumerable<SafeGroup> safeGroups, Stream outputStream)
     {
