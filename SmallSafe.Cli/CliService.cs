@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Extensions.Logging;
+using SmallSafe.Secure;
 using SmallSafe.Secure.Model;
 using SmallSafe.Secure.Services;
 
@@ -10,11 +11,13 @@ public class CliService
 {
     private readonly ILogger<CliService> _logger;
     private readonly ISafeDbService _safeDbService;
+    private readonly IEncryptDecrypt _encryptDecrypt;
 
-    public CliService(ILogger<CliService> logger, ISafeDbService safeDbService)
+    public CliService(ILogger<CliService> logger, ISafeDbService safeDbService, IEncryptDecrypt encryptDecrypt)
     {
         _logger = logger;
         _safeDbService = safeDbService;
+        _encryptDecrypt = encryptDecrypt;
     }
 
     public async Task ExecuteAsync(string? safeDbFile)
@@ -98,10 +101,7 @@ public class CliService
                         break;
                     }
 
-                    {
-                        await using FileStream fileStream = new(safeDbFile, FileMode.CreateNew, FileAccess.Write);
-                        await _safeDbService.WriteAsync(masterPassword, Enumerable.Empty<SafeGroup>(), fileStream);
-                    }
+                    await WriteSafeGroupsAsync(safeDbFile, masterPassword, Enumerable.Empty<SafeGroup>());
 
                     break;
                 case "x":
@@ -121,16 +121,7 @@ public class CliService
             while (true)
             {
                 _logger.LogInformation("Enter the master password for the Safe DB:");
-                ConsoleKeyInfo key;
-                StringBuilder enteredMasterPassword = new();
-                while ((key = Console.ReadKey(true)).Key != ConsoleKey.Enter)
-                {
-                    enteredMasterPassword.Append(key.KeyChar);
-                    Console.Write('*');
-                }
-                Console.WriteLine();
-                masterPassword = enteredMasterPassword.ToString();
-
+                masterPassword = ReadConsolePassword();
                 if (masterPassword.Length == 0)
                 {
                     _logger.LogWarning("No master password entered, try again.");
@@ -159,11 +150,7 @@ public class CliService
     {
         while (true)
         {
-            IEnumerable<SafeGroup> safeGroups;
-            {
-                await using FileStream fileStream = new(safeDbFile, FileMode.Open, FileAccess.Read);
-                safeGroups = await _safeDbService.ReadAsync(masterPassword, fileStream);
-            }
+            var safeGroups = await ReadSafeGroupsAsync(safeDbFile, masterPassword);
 
             _logger.LogInformation("Groups:");
             if (!safeGroups.Any())
@@ -185,22 +172,120 @@ public class CliService
             switch (selection)
             {
                 case "n":
-                    // TODO: create a new group
+                    _logger.LogInformation("Enter the name of the new group:");
+                    var newGroupName = Console.ReadLine();
+                    if (string.IsNullOrWhiteSpace(newGroupName))
+                    {
+                        _logger.LogWarning("No name entered, try again.");
+                        break;
+                    }
+
+                    newGroupName = newGroupName.Trim();
+                    if (safeGroups.Any(g => string.Equals(g.Name, newGroupName, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        _logger.LogWarning($"Group '{newGroupName}' already exists, try again.");
+                        break;
+                    }
+
+                    safeGroups = safeGroups.Append(new() { Name = newGroupName });
+                    await WriteSafeGroupsAsync(safeDbFile, masterPassword, safeGroups);
+                    await ManageSafeDbGroupAsync(safeDbFile, masterPassword, safeGroups, safeGroups.Single(x => x.Name == newGroupName));
                     break;
                 case "x":
                     return;
                 default:
                     // is it a valid group number
-                    if (int.TryParse(selection, out var groupNum) && groupNum > 0 && groupNum <= safeGroups.Count())
+                    SafeGroup? selectedGroup;
+                    if (int.TryParse(selection, out var groupNum) && groupNum > 0 && groupNum <= safeGroups.Count() && (selectedGroup = safeGroups.ElementAtOrDefault(groupNum - 1)) != null)
                     {
-                        // show group
+                        await ManageSafeDbGroupAsync(safeDbFile, masterPassword, safeGroups, selectedGroup);
                     }
                     else
                     {
-                        _logger.LogWarning(@"Unknown option");
+                        _logger.LogWarning("Unknown option");
                     }
                     break;
             }
         }
+    }
+    private string ReadConsolePassword()
+    {
+        ConsoleKeyInfo key;
+        StringBuilder enteredPasswordValue = new();
+        while ((key = Console.ReadKey(true)).Key != ConsoleKey.Enter)
+        {
+            enteredPasswordValue.Append(key.KeyChar);
+            Console.Write('*');
+        }
+        Console.WriteLine();
+        return enteredPasswordValue.ToString();
+    }
+
+    private async Task ManageSafeDbGroupAsync(string safeDbFile, string masterPassword, IEnumerable<SafeGroup> safeGroups, SafeGroup safeGroup)
+    {
+        while (true)
+        {
+            _logger.LogInformation($"Group: {safeGroup.Name}");
+            _logger.LogInformation("Entries:");
+            if (!(safeGroup.Entries?.Any() ?? false))
+            {
+                _logger.LogInformation(" <no password entries in group>");
+            }
+            else
+            {
+                var entryNum = 1;
+                foreach (var entry in safeGroup.Entries)
+                    _logger.LogInformation($"{entryNum++}. {entry.Name}");
+            }
+
+            _logger.LogInformation("");
+            _logger.LogInformation("n. Create a new entry in this group");
+            _logger.LogInformation("x. Back");
+
+            var selection = Console.ReadLine();
+            switch (selection)
+            {
+                case "n":
+                    _logger.LogInformation("Enter the name of the new entry (optional):");
+                    var newEntryName = (Console.ReadLine() ?? "").Trim();
+
+                    _logger.LogInformation("Enter the value to be encrypted for the new entry:");
+                    var newValue = ReadConsolePassword();
+                    var (encryptedValue, iv, salt) = _encryptDecrypt.Encrypt(masterPassword, newValue);
+
+                    safeGroup.Entries ??= new List<SafeEntry>();
+                    safeGroup.Entries.Add(new() { Name = newEntryName, EncryptedValue = encryptedValue, IV = iv, Salt = salt });
+                    await WriteSafeGroupsAsync(safeDbFile, masterPassword, safeGroups);
+
+                    break;
+                case "x":
+                    return;
+                default:
+                    // is it a valid entry number
+                    SafeEntry? selectedEntry;
+                    if (safeGroup.Entries != null && int.TryParse(selection, out var entryNum) && entryNum > 0 && entryNum <= safeGroup.Entries.Count() && (selectedEntry = safeGroup.Entries.ElementAtOrDefault(entryNum - 1)) != null)
+                    {
+                        // TODO - manage entry: update / delete
+                        _logger.LogCritical("TODO: manage entry");
+                    }
+                    else
+                    {
+                        _logger.LogWarning("Unknown option");
+                    }
+                    break;
+            }
+        }
+    }
+
+    private async Task<IEnumerable<SafeGroup>> ReadSafeGroupsAsync(string safeDbFile, string masterPassword)
+    {
+        await using FileStream fileStream = new(safeDbFile, FileMode.Open, FileAccess.Read);
+        return await _safeDbService.ReadAsync(masterPassword, fileStream);
+    }
+
+    private async Task WriteSafeGroupsAsync(string safeDbFile, string masterPassword, IEnumerable<SafeGroup> safeGroups)
+    {
+        await using FileStream fileStream = new(safeDbFile, FileMode.OpenOrCreate, FileAccess.Write);
+        await _safeDbService.WriteAsync(masterPassword, safeGroups, fileStream);
     }
 }
