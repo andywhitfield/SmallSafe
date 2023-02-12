@@ -240,6 +240,7 @@ public class CliService
 
             _logger.LogInformation("");
             _logger.LogInformation("n. Create a new entry in this group");
+            _logger.LogInformation("d. Delete this group, and all entries in the group");
             _logger.LogInformation("x. Back");
 
             var selection = Console.ReadLine();
@@ -258,6 +259,10 @@ public class CliService
                     await WriteSafeGroupsAsync(safeDbFile, masterPassword, safeGroups);
 
                     break;
+                case "d":
+                    safeGroups = safeGroups.Where(g => g.Name != safeGroup.Name);
+                    await WriteSafeGroupsAsync(safeDbFile, masterPassword, safeGroups);
+                    return;
                 case "x":
                     return;
                 default:
@@ -265,13 +270,74 @@ public class CliService
                     SafeEntry? selectedEntry;
                     if (safeGroup.Entries != null && int.TryParse(selection, out var entryNum) && entryNum > 0 && entryNum <= safeGroup.Entries.Count() && (selectedEntry = safeGroup.Entries.ElementAtOrDefault(entryNum - 1)) != null)
                     {
-                        // TODO - manage entry: update / delete
-                        _logger.LogCritical("TODO: manage entry");
+                        await ManageSafeDbEntryAsync(safeDbFile, masterPassword, safeGroups, safeGroup, selectedEntry);
                     }
                     else
                     {
                         _logger.LogWarning("Unknown option");
                     }
+                    break;
+            }
+        }
+    }
+
+    private async Task ManageSafeDbEntryAsync(string safeDbFile, string masterPassword, IEnumerable<SafeGroup> safeGroups, SafeGroup safeGroup, SafeEntry safeEntry)
+    {
+        while (true)
+        {
+            _logger.LogInformation($"1. View");
+            _logger.LogInformation($"2. Edit");
+            _logger.LogInformation($"3. Delete");
+            _logger.LogInformation($"x. Back");
+
+            var selection = Console.ReadLine();
+            switch (selection)
+            {
+                case "1":
+                    _logger.LogInformation($"Group: {safeGroup.Name}");
+                    _logger.LogInformation($"Entry: {safeEntry.Name}");
+                    if (safeEntry.IV == null || safeEntry.Salt == null || safeEntry.EncryptedValue == null)
+                    {
+                        _logger.LogError("Encrypted value is corrupt");
+                        break;
+                    }
+
+                    _logger.LogInformation("Encrypted value:");
+                    _logger.LogInformation("---");
+                    _logger.LogInformation(_encryptDecrypt.Decrypt(masterPassword, safeEntry.IV, safeEntry.Salt, safeEntry.EncryptedValue));
+                    _logger.LogInformation("---");
+                    _logger.LogInformation("");
+                    break;
+                case "2":
+                    _logger.LogInformation($"Enter the new name of the new entry (optional):");
+                    var entryNewName = (Console.ReadLine() ?? "").Trim();
+
+                    _logger.LogInformation("Enter the new value to be encrypted for the entry:");
+                    var entryNewValue = ReadConsolePassword();
+                    var (encryptedValue, iv, salt) = _encryptDecrypt.Encrypt(masterPassword, entryNewValue);
+
+                    safeEntry.Name = entryNewName;
+                    safeEntry.EncryptedValue = encryptedValue;
+                    safeEntry.IV = iv;
+                    safeEntry.Salt = salt;
+                    await WriteSafeGroupsAsync(safeDbFile, masterPassword, safeGroups);
+
+                    break;
+                case "3":
+                    if (safeGroup.Entries?.Remove(safeEntry) ?? false)
+                    {
+                        await WriteSafeGroupsAsync(safeDbFile, masterPassword, safeGroups);
+                        return;
+                    }
+                    else
+                    {
+                        _logger.LogError("Could not remove entry");
+                    }
+                    break;
+                case "x":
+                    return;
+                default:
+                    _logger.LogWarning("Unknown option, try again");
                     break;
             }
         }
@@ -285,7 +351,7 @@ public class CliService
 
     private async Task WriteSafeGroupsAsync(string safeDbFile, string masterPassword, IEnumerable<SafeGroup> safeGroups)
     {
-        await using FileStream fileStream = new(safeDbFile, FileMode.OpenOrCreate, FileAccess.Write);
+        await using FileStream fileStream = new(safeDbFile, FileMode.Create, FileAccess.Write);
         await _safeDbService.WriteAsync(masterPassword, safeGroups, fileStream);
     }
 }
