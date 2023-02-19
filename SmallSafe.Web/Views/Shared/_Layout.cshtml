@@ -1,0 +1,39 @@
+@model SmallSafe.Web.ViewModels.BaseViewModel
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+    <title>Small:Safe</title>
+
+    <environment names="Development">
+        <link rel="stylesheet" href="/css/smallsafe.css" />
+    </environment>
+    <environment names="Staging,Production">
+        <link rel="stylesheet" href="/css/smallsafe.min.css" asp-append-version="true" />
+    </environment>
+    @RenderSection("HeaderScripts", required: false)
+</head>
+<body>
+    <main>
+      @RenderBody()
+    </main>
+
+    <footer class="footer ">
+        &#169; @DateTime.Today.Year Small:Safe
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js" crossorigin="anonymous"></script>
+    <environment names="Development">
+        <script src="/js/smallsafe.js" asp-append-version="true"></script>
+    </environment>
+    <environment names="Staging,Production">
+        <script src="/js/smallsafe.min.js" asp-append-version="true"></script>
+    </environment>
+
+    <script type="text/javascript">
+        $(function() { ssInitialise() })
+    </script>
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

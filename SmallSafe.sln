@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmallSafe.Cli", "SmallSafe.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmallSafe.Secure.Test", "SmallSafe.Secure.Test\SmallSafe.Secure.Test.csproj", "{70F5BAFB-61E7-450C-9607-A5957D2BF7A7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmallSafe.Web", "SmallSafe.Web\SmallSafe.Web.csproj", "{1719292D-D27A-4FDA-B3C9-053899A53AD3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,5 +32,9 @@ Global
 		{70F5BAFB-61E7-450C-9607-A5957D2BF7A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{70F5BAFB-61E7-450C-9607-A5957D2BF7A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{70F5BAFB-61E7-450C-9607-A5957D2BF7A7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1719292D-D27A-4FDA-B3C9-053899A53AD3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1719292D-D27A-4FDA-B3C9-053899A53AD3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1719292D-D27A-4FDA-B3C9-053899A53AD3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1719292D-D27A-4FDA-B3C9-053899A53AD3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

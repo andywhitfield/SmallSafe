@@ -1,0 +1,18 @@
+﻿[{
+        "outputFileName": "wwwroot/css/smallsafe.min.css",
+        "inputFiles": [
+            "wwwroot/css/smallsafe.css"
+        ]
+    },
+    {
+        "outputFileName": "wwwroot/js/smallsafe.min.js",
+        "inputFiles": [
+            "wwwroot/js/smallsafe.js"
+        ],
+        "minify": {
+            "enabled": true,
+            "renameLocals": true
+        },
+        "sourceMap": false
+    }
+]
