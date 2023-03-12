@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="BuildBundlerMinifier" Version="*" />
+    <PackageReference Include="GoogleAuthenticator" Version="3.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="7.0.*" />
     <PackageReference Include="Microsoft.AspNetCore.DataProtection.Abstractions" Version="7.0.*" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="7.0.*" Condition="'$(Configuration)' == 'Debug'" />

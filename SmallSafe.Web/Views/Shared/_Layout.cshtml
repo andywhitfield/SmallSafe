@@ -4,6 +4,8 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+    <link rel="icon" sizes="16x16" href="/images/ss.png">
+    <link rel="apple-touch-icon" href="/images/ss.png" sizes="32x32" />
     <title>Small:Safe</title>
 
     <environment names="Development">
@@ -15,15 +17,67 @@
     @RenderSection("HeaderScripts", required: false)
 </head>
 <body>
+    <header>
+        <nav class="navbar-header">
+            <a href="/">
+                <img src="/images/ss.png" height="38" width="38" />
+                <span>
+                    Small:Safe
+                </span>
+            </a>
+        </nav>
+        <nav class="navbar-main">
+            <div class="navbar-nav">
+                @if (Model.IsLoggedIn) {                    
+                    <span class="narrow-hide">
+                    <form method="get" action="/find">
+                    <input type="text" name="q" placeholder="Find group or item..." /> <input type="submit" value="Find" />
+                    </form> |
+                    </span>
+
+                    <span>
+                    <form action="/profile">
+                    <button data-href="/profile">Profile</button>
+                    </form> |
+
+                    <form action="/signout" method="post">
+                    @Html.AntiForgeryToken()
+                    <button>Logout</button>
+                    </form>
+                    </span>
+                }
+            </div>
+            <div>
+                <img class="nav-show" src="/images/add.png" height="24" width="24" />
+                <img class="nav-close" src="/images/close.png" height="24" width="24" />
+            </div>
+        </nav>
+    </header>
+
     <main>
-      @RenderBody()
+        <aside>
+            <nav>
+                Password Creator
+            </nav>
+        </aside>
+
+        @RenderBody()
     </main>
 
     <footer class="footer ">
         &#169; @DateTime.Today.Year Small:Safe
     </footer>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.4/jquery.min.js"
+            asp-fallback-src="/lib/jquery/jquery.min.js"
+            asp-fallback-test="window.jQuery"
+            crossorigin="anonymous">
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-sortable/0.9.13/jquery-sortable-min.js"
+            asp-fallback-src="/lib/jquery-sortable/jquery-sortable-min.js"
+            asp-fallback-test="window.jQuery"
+            crossorigin="anonymous">
+    </script>
     <environment names="Development">
         <script src="/js/smallsafe.js" asp-append-version="true"></script>
     </environment>

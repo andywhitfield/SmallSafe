@@ -1,4 +1,5 @@
 using System.Web;
+using Google.Authenticator;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
@@ -13,11 +14,31 @@ public class HomeController : Controller
     [Authorize]
     [HttpGet("~/")]
     public IActionResult Index()
-    {           
+    {
         if (User == null)
             return Redirect("~/signin");
 
-        return View(new IndexViewModel(HttpContext));
+        string key = "abcdefghij";
+        TwoFactorAuthenticator tfa = new();
+        var setupInfo = tfa.GenerateSetupCode("Test Two Factor", "user@example.com", key, false, 3);
+        var qrCodeImageUrl = setupInfo.QrCodeSetupImageUrl;
+        var manualEntrySetupCode = setupInfo.ManualEntryKey;
+
+        return View(new IndexViewModel(HttpContext, qrCodeImageUrl, manualEntrySetupCode, null));
+    }
+
+    [Authorize]
+    [HttpPost("~/validate")]
+    public IActionResult Validate([FromForm]string totp)
+    {
+        string key = "abcdefghij";
+        TwoFactorAuthenticator tfa = new();
+        var setupInfo = tfa.GenerateSetupCode("Test Two Factor", "user@example.com", key, false, 3);
+        var qrCodeImageUrl = setupInfo.QrCodeSetupImageUrl;
+        var manualEntrySetupCode = setupInfo.ManualEntryKey;
+        var result = tfa.ValidateTwoFactorPIN(key, totp);
+
+        return View("Index", new IndexViewModel(HttpContext, qrCodeImageUrl, manualEntrySetupCode, result));
     }
 
     public IActionResult Error() => View(new ErrorViewModel(HttpContext));
