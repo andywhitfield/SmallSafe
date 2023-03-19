@@ -181,6 +181,9 @@ ul.ss-list-item>li>div:nth-child(4)>form {
 
 ul.ss-list-item>li>div:nth-child(3) {
     flex-grow: 1;
+}
+
+div.ss-list-item-link {
     cursor: pointer;
     text-decoration: underline;
 }
@@ -191,6 +194,13 @@ ul.ss-list-item>li>div:nth-child(3):hover {
 
 ul.ss-list-item>li>div {
     padding: 0 10px 0 0;
+}
+
+.ss-list-item-entry textarea {
+    white-space: nowrap;
+    overflow: scroll;
+    height: 80px;
+    width: 100%;
 }
 
 body.dragging,
