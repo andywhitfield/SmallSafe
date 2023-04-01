@@ -59,5 +59,24 @@
         </li>
     </ul>
 
-    TODO: form for new entry
+    <p>
+    <form method="post" action="TODO">
+    @Html.AntiForgeryToken()
+    <fieldset>
+    <legend>Add a new entry</legend>
+    <p>
+    <div>Name:</div>
+    <input type="text" name="name" />
+    </p>
+
+    <p>
+    <div>Encrypted value:</div>
+    <textarea id="encryptedvalue" name="encryptedvalue" wrap="off"></textarea>
+    <div><input type="checkbox" id="show-encryptedvalue" name="show-encryptedvalue" checked="checked" /><label for="show-encryptedvalue">Show encrypted value</label></div>
+    </p>
+
+    <p><button name="add" value="true" type="submit" data-depends="input.encryptedvalue">Add</button></p>
+    </fieldset>
+    </form>
+    </p>
 </article>

@@ -2,7 +2,7 @@
 
 <article>
     <div class="ss-group-toolbar">
-    <a href="TODO">Sort by name</a> | <a href="TODO">Add group</a> | <input type="text" name="filter" placeholder="Filter groups..." />
+    <a href="TODO">Sort by name</a> | <input type="text" name="filter" placeholder="Filter groups..." />
     </div>
 
     <ul class="ss-list">
@@ -44,6 +44,21 @@
             </ul>
         </li>
     </ul>
+
+    <a name="addnewgroup" />
+    <p>
+    <form method="post" action="TODO">
+    @Html.AntiForgeryToken()
+    <fieldset>
+    <legend>Add a new group</legend>
+    <p>
+    <div>Name:</div>
+    <input type="text" name="name" />
+    </p>
+
+    <p><button name="add" value="true" type="submit" data-depends="input.name">Add</button></p>
+    </fieldset>
+    </form>
 
 
 

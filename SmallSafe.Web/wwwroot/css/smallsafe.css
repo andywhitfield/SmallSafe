@@ -91,6 +91,25 @@ nav.navbar-main {
     display: inline;
 }
 
+nav input[type=number] {
+    width: 50px;
+    margin-bottom: 3px;
+}
+
+nav input[type=checkbox] {
+    margin-bottom: 6px;
+}
+
+nav input[type=text] {
+    width: 160px;
+    margin-bottom: 3px;
+}
+
+nav label {
+    display: inline-block;
+    width: 140px;
+}
+
 main {
     display: -webkit-flex;
     display: flex;
@@ -201,6 +220,14 @@ ul.ss-list-item>li>div {
     overflow: scroll;
     height: 80px;
     width: 100%;
+}
+
+li.ss-list-item {
+    border: 2px solid #9eaabc;
+}
+
+li.ss-list-item:hover {
+    border-color: #ffbaba;
 }
 
 body.dragging,

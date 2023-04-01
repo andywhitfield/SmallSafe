@@ -31,7 +31,7 @@
                 @if (Model.IsLoggedIn) {                    
                     <span class="narrow-hide">
                     <form method="get" action="/find">
-                    <input type="text" name="q" placeholder="Find group or item..." /> <input type="submit" value="Find" />
+                    <input type="text" name="q" placeholder="Find group or item..." /> <button type="submit">Find</button>
                     </form> |
                     </span>
 
@@ -57,7 +57,51 @@
     <main>
         <aside>
             <nav>
-                Password Creator
+                <form method="post" action="TODO">
+                @Html.AntiForgeryToken()
+                <fieldset>
+                <legend>Password Generator</legend>
+                
+                <div>
+                <label for="genpwmin" title="Minimum length of the generated password">Min length:</label>
+                <input type="number" title="Minimum length of the generated password" id="genpwmin" min="0" name="genpwmin" value="12" />
+                </div>
+                
+                <div>
+                <label for="genpwmax" title="Maximum length of the generated password">Max length:</label>
+                <input type="number" title="Maximum length of the generated password" id="genpwmax" min="0" name="genpwmax" value="0" />
+                </div>
+
+                <div>
+                <label for="genpwnums" title="Include numbers in the generated password">With numbers:</label>
+                <input type="checkbox" title="Include numbers in the generated password" id="genpwnums" name="genpwnums" checked="checked" />
+                </div>
+
+                <div>
+                <label for="genpwallchars" title="Include special characters, such as commas and exclamation marks, in the generated password">Special characters:</label>
+                <input type="checkbox" title="Include special characters, such as commas and exclamation marks, in the generated password" id="genpwallchars" name="genpwallchars" checked="checked" />
+                </div>
+
+                <div>
+                <button type="submit">Generate</button>
+                </div>
+
+                <p>
+
+                <div>
+                <button title="Copy password to the clipboard"><img src="/images/copy.png" height="15" width="15" /></button>
+                <input type="text" name="genpw1" />
+                </div>
+
+                <div>
+                <button title="Copy password to the clipboard"><img src="/images/copy.png" height="15" width="15" /></button>
+                <input type="text" name="genpw2" />
+                </div>
+
+                </p>
+
+                </fieldset>
+                </form>
             </nav>
         </aside>
 
