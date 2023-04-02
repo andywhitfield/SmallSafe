@@ -5,11 +5,14 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using SmallSafe.Web.Data;
+using SmallSafe.Web.Services;
 
 namespace SmallSafe.Web;
 
 public class Startup
 {
+    private static readonly TimeSpan _loginSessionTimeout = new(0, 10, 0);
+
     public Startup(IWebHostEnvironment env)
     {
         var builder = new ConfigurationBuilder()
@@ -35,8 +38,8 @@ public class Startup
                 o.LoginPath = "/signin";
                 o.LogoutPath = "/signout";
                 o.Cookie.HttpOnly = true;
-                o.Cookie.MaxAge = TimeSpan.FromDays(1);
-                o.ExpireTimeSpan = TimeSpan.FromDays(1);
+                o.Cookie.MaxAge = _loginSessionTimeout;
+                o.ExpireTimeSpan = _loginSessionTimeout;
                 o.SlidingExpiration = true;
             })
             .AddOpenIdConnect(options =>
@@ -94,7 +97,7 @@ public class Startup
 #endif
         services.AddCors();
         services.AddDistributedMemoryCache();
-        services.AddSession(options => options.IdleTimeout = TimeSpan.FromMinutes(5));
+        services.AddSession(options => options.IdleTimeout = _loginSessionTimeout);
 
         services
             .AddDbContext<SqliteDataContext>((serviceProvider, options) =>
@@ -103,7 +106,8 @@ public class Startup
                 serviceProvider.GetRequiredService<ILogger<SqliteDataContext>>().LogInformation($"Using connection string: {sqliteConnectionString}");
                 options.UseSqlite(sqliteConnectionString);
             })
-            .AddScoped(sp => (ISqliteDataContext)sp.GetRequiredService<SqliteDataContext>());
+            .AddScoped(sp => (ISqliteDataContext)sp.GetRequiredService<SqliteDataContext>())
+            .AddScoped<IUserService, UserService>();
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
