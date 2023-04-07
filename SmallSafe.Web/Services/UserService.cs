@@ -32,12 +32,20 @@ public class UserService : IUserService
         return userAccount ?? await CreateUserAsync(authenticationUri);
     }
 
+    public Task UpdateUserDbAsync(UserAccount user, string safeDb)
+    {
+        user.SafeDb = safeDb;
+        user.LastUpdateDateTime = DateTime.UtcNow;
+        return _dbContext.SaveChangesAsync();
+    }
+
     private async Task<UserAccount> CreateUserAsync(string authenticationUri)
     {
         var newUser = _dbContext.UserAccounts!.Add(new() 
         {
             CreatedDateTime = DateTime.UtcNow,
-            AuthenticationUri = authenticationUri
+            AuthenticationUri = authenticationUri,
+            TwoFactorKey = Guid.NewGuid().ToString()
         });
         await _dbContext.SaveChangesAsync();
         return newUser.Entity;

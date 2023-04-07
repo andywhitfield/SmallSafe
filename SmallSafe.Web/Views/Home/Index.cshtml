@@ -59,33 +59,4 @@
     <p><button name="add" value="true" type="submit" data-depends="input.name">Add</button></p>
     </fieldset>
     </form>
-
-
-
-
-    <hr />
-    <p>
-    Auth key:
-    </p>
-    <p>
-    <img src="@Model.QrCodeImageUrl" />
-    </p>
-    <p>
-    Manual setup code: @Model.ManualEntrySetupCode
-    </p>
-    <p>
-    Validate code:
-    <form method="POST" action="/validate">
-    <input type="text" name="totp" />
-    <input type="submit" value="Validate" />
-    </form>
-    @if (Model.ValidationResult.HasValue)
-    {
-        @if (Model.ValidationResult.Value) {
-        <div>Pass</div>
-        } else {
-        <div>Fail</div>
-        }
-    }
-    </p>
 </article>

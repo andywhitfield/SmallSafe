@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+using SmallSafe.Secure;
+using SmallSafe.Secure.Services;
 using SmallSafe.Web.Data;
 using SmallSafe.Web.Services;
 
@@ -107,7 +109,10 @@ public class Startup
                 options.UseSqlite(sqliteConnectionString);
             })
             .AddScoped(sp => (ISqliteDataContext)sp.GetRequiredService<SqliteDataContext>())
-            .AddScoped<IUserService, UserService>();
+            .AddScoped<IUserService, UserService>()
+            .AddTransient<ISafeDbService, SafeDbService>()
+            .AddTransient<IEncryptDecrypt, EncryptDecrypt>()
+            .AddTransient<ITwoFactor, TwoFactor>();
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)

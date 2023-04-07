@@ -21,7 +21,6 @@ namespace SmallSafe.Web.Migrations
                     CreatedDateTime = table.Column<DateTime>(type: "TEXT", nullable: false),
                     LastUpdateDateTime = table.Column<DateTime>(type: "TEXT", nullable: true),
                     DeletedDateTime = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    MasterPassword = table.Column<string>(type: "TEXT", nullable: true),
                     TwoFactorKey = table.Column<string>(type: "TEXT", nullable: true),
                     SafeDb = table.Column<string>(type: "TEXT", nullable: true)
                 },

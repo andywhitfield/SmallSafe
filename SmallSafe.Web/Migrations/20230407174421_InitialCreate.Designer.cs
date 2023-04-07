@@ -11,7 +11,7 @@ using SmallSafe.Web.Data;
 namespace SmallSafe.Web.Migrations
 {
     [DbContext(typeof(SqliteDataContext))]
-    [Migration("20230407105352_InitialCreate")]
+    [Migration("20230407174421_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -37,9 +37,6 @@ namespace SmallSafe.Web.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime?>("LastUpdateDateTime")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("MasterPassword")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("SafeDb")

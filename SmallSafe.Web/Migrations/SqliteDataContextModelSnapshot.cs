@@ -36,9 +36,6 @@ namespace SmallSafe.Web.Migrations
                     b.Property<DateTime?>("LastUpdateDateTime")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("MasterPassword")
-                        .HasColumnType("TEXT");
-
                     b.Property<string>("SafeDb")
                         .HasColumnType("TEXT");
 

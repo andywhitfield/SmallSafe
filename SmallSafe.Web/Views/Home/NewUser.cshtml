@@ -1,5 +1,6 @@
 ﻿@model SmallSafe.Web.ViewModels.Home.NewUserViewModel
 
+<form method="post" action="/newuser">
 <article>
     <h1>Welcome!</h1>
     <p>
@@ -9,7 +10,7 @@
     <h2>Master password</h2>
     <p>
         Enter a strong master password:
-        <input type="text" title="Enter a new master password" />
+        <input type="text" title="Enter a new master password" name="masterpassword" />
     </p>
 
     <h2>Two-factor setup</h2>
@@ -23,10 +24,11 @@
 
     <p>
         <div>Validate the code displayed in your authenticator app:</div>
-        <input type="text" title="Enter the code generated generated in your authenticator app" />
+        <input type="text" title="Enter the code generated generated in your authenticator app" name="twofa" />
     </p>
 
     <p>
         <input type="submit" value="Save master password and confirm two-factor code" />
     </p>
 </article>
+</form>
