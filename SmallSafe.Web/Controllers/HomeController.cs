@@ -22,7 +22,7 @@ public class HomeController : Controller
     {
         if (User == null)
             return Redirect("~/signin");
-        
+
         if (await _userService.IsNewUserAsync(User))
             return Redirect("~/newuser");
 
@@ -37,7 +37,7 @@ public class HomeController : Controller
 
     [Authorize]
     [HttpPost("~/validate")]
-    public IActionResult Validate([FromForm]string totp)
+    public IActionResult Validate([FromForm] string totp)
     {
         string key = "abcdefghij";
         TwoFactorAuthenticator tfa = new();
@@ -75,5 +75,13 @@ public class HomeController : Controller
 
     [Authorize]
     [HttpGet("~/newuser")]
-    public IActionResult NewUser() => View(new NewUserViewModel(HttpContext));
+    public async Task<IActionResult> NewUser()
+    {
+        var user = await _userService.GetOrCreateUserAsync(User);
+
+        string key = user.TwoFactorKey ?? "abcdefghij";
+        TwoFactorAuthenticator tfa = new();
+        var setupInfo = tfa.GenerateSetupCode("smallsafe.nosuchblogger.com", user.AuthenticationUri, key, false, 3);
+        return View(new NewUserViewModel(HttpContext, setupInfo.QrCodeSetupImageUrl, setupInfo.ManualEntryKey));
+    }
 }

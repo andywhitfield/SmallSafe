@@ -2,7 +2,12 @@ namespace SmallSafe.Web.ViewModels.Home;
 
 public class NewUserViewModel : BaseViewModel
 {
-    public NewUserViewModel(HttpContext context) : base(context)
+    public string TwoFactorImageUrl { get; init; }
+    public string TwoFactorManualEntrySetupCode { get; init; }
+
+    public NewUserViewModel(HttpContext context, string twoFactorImageUrl, string twoFactorManualEntrySetupCode) : base(context)
     {
+        TwoFactorImageUrl = twoFactorImageUrl;
+        TwoFactorManualEntrySetupCode = twoFactorManualEntrySetupCode;
     }
 }
