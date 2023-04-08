@@ -9,4 +9,6 @@ public interface IUserService
     Task<UserAccount> GetUserAsync(ClaimsPrincipal user);
     Task<UserAccount> GetOrCreateUserAsync(ClaimsPrincipal user);
     Task UpdateUserDbAsync(UserAccount user, string safeDb);
+    Task LoginSuccessAsync(UserAccount user);
+    Task LoginFailureAsync(UserAccount user);
 }

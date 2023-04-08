@@ -39,6 +39,20 @@ public class UserService : IUserService
         return _dbContext.SaveChangesAsync();
     }
 
+    public Task LoginSuccessAsync(UserAccount user)
+    {
+        user.LastTwoFactorSuccess = DateTime.UtcNow;
+        user.TwoFactorFailureCount = 0;
+        return _dbContext.SaveChangesAsync();
+    }
+
+    public Task LoginFailureAsync(UserAccount user)
+    {
+        user.LastTwoFactorFailure = DateTime.UtcNow;
+        user.TwoFactorFailureCount++;
+        return _dbContext.SaveChangesAsync();
+    }
+
     private async Task<UserAccount> CreateUserAsync(string authenticationUri)
     {
         var newUser = _dbContext.UserAccounts!.Add(new() 

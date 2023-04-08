@@ -12,9 +12,9 @@ public class TwoFactor : ITwoFactor
         return (setupInfo.QrCodeSetupImageUrl, setupInfo.ManualEntryKey);
     }
 
-    public bool ValidateTwoFactorCodeForUser(UserAccount user, string twofa)
+    public bool ValidateTwoFactorCodeForUser(UserAccount user, string? twofa)
     {
         TwoFactorAuthenticator tfa = new();
-        return tfa.ValidateTwoFactorPIN(user.TwoFactorKey, twofa);
+        return twofa != null && tfa.ValidateTwoFactorPIN(user.TwoFactorKey, twofa);
     }
 }

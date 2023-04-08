@@ -11,6 +11,9 @@ public class UserAccount
     public DateTime? LastUpdateDateTime { get; set; }
     public DateTime? DeletedDateTime { get; set; }
     public string? TwoFactorKey { get; set; }
+    public DateTime? LastTwoFactorSuccess { get; set; }
+    public DateTime? LastTwoFactorFailure { get; set; }
+    public int TwoFactorFailureCount { get; set; }
     public string? SafeDb { get; set; }
 
     public bool IsAccountConfigured =>

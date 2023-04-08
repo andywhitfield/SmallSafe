@@ -4,7 +4,7 @@ using SmallSafe.Web.ViewModels.Group;
 
 namespace SmallSafe.Web.Controllers;
 
-[Authorize]
+[Authorize(Policy = "TwoFactor")]
 public class GroupController : Controller
 {
     [HttpGet("~/group/{groupId}")]

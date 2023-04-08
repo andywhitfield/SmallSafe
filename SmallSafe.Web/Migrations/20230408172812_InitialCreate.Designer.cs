@@ -11,7 +11,7 @@ using SmallSafe.Web.Data;
 namespace SmallSafe.Web.Migrations
 {
     [DbContext(typeof(SqliteDataContext))]
-    [Migration("20230407174421_InitialCreate")]
+    [Migration("20230408172812_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -36,11 +36,20 @@ namespace SmallSafe.Web.Migrations
                     b.Property<DateTime?>("DeletedDateTime")
                         .HasColumnType("TEXT");
 
+                    b.Property<DateTime?>("LastTwoFactorFailure")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("LastTwoFactorSuccess")
+                        .HasColumnType("TEXT");
+
                     b.Property<DateTime?>("LastUpdateDateTime")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("SafeDb")
                         .HasColumnType("TEXT");
+
+                    b.Property<int>("TwoFactorFailureCount")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("TwoFactorKey")
                         .HasColumnType("TEXT");

@@ -1,11 +1,13 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using SmallSafe.Secure;
 using SmallSafe.Secure.Services;
+using SmallSafe.Web.Authorization;
 using SmallSafe.Web.Data;
 using SmallSafe.Web.Services;
 
@@ -67,6 +69,10 @@ public class Startup
 
                 options.AccessDeniedPath = "/";
             });
+        
+        services.AddAuthorization(options => options.AddPolicy("TwoFactor", policy => policy.AddRequirements(new TwoFactorRequirement())));
+        services.AddHttpContextAccessor();
+        services.AddScoped<IAuthorizationHandler, TwoFactorHandler>();
 
         services
             .AddDataProtection()

@@ -1,0 +1,23 @@
+﻿@model SmallSafe.Web.ViewModels.Home.TwoFactorLoginViewModel
+
+<form method="post" action="/twofactor">
+@Html.AntiForgeryToken()
+<article>
+    <h1>Welcome back!</h1>
+
+    <p>
+        <div>Enter your master password:</div>
+        <input type="text" title="Enter a new master password" name="masterpassword" />
+    </p>
+
+    <p>
+        <div>Enter the code displayed in your authenticator app:</div>
+        <input type="text" title="Enter the code generated generated in your authenticator app" name="twofa" />
+    </p>
+
+    <p>
+        <input type="submit" value="Login" />
+    </p>
+</article>
+<input type="hidden" name="returnUrl" value="@Model.ReturnUrl" />
+</form>

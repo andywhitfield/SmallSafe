@@ -1,6 +1,7 @@
 ﻿@model SmallSafe.Web.ViewModels.Home.NewUserViewModel
 
 <form method="post" action="/newuser">
+@Html.AntiForgeryToken()
 <article>
     <h1>Welcome!</h1>
     <p>

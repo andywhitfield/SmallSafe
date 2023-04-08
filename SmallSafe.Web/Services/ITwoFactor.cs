@@ -5,5 +5,5 @@ namespace SmallSafe.Web.Services;
 public interface ITwoFactor
 {
     (string QrCodeImageUrl, string ManualSetupKey) GenerateSetupCodeForUser(UserAccount user);
-    bool ValidateTwoFactorCodeForUser(UserAccount user, string twofa);
+    bool ValidateTwoFactorCodeForUser(UserAccount user, string? twofa);
 }

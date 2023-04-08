@@ -22,6 +22,9 @@ namespace SmallSafe.Web.Migrations
                     LastUpdateDateTime = table.Column<DateTime>(type: "TEXT", nullable: true),
                     DeletedDateTime = table.Column<DateTime>(type: "TEXT", nullable: true),
                     TwoFactorKey = table.Column<string>(type: "TEXT", nullable: true),
+                    LastTwoFactorSuccess = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    LastTwoFactorFailure = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    TwoFactorFailureCount = table.Column<int>(type: "INTEGER", nullable: false),
                     SafeDb = table.Column<string>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>

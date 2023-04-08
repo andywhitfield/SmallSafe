@@ -33,11 +33,20 @@ namespace SmallSafe.Web.Migrations
                     b.Property<DateTime?>("DeletedDateTime")
                         .HasColumnType("TEXT");
 
+                    b.Property<DateTime?>("LastTwoFactorFailure")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("LastTwoFactorSuccess")
+                        .HasColumnType("TEXT");
+
                     b.Property<DateTime?>("LastUpdateDateTime")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("SafeDb")
                         .HasColumnType("TEXT");
+
+                    b.Property<int>("TwoFactorFailureCount")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("TwoFactorKey")
                         .HasColumnType("TEXT");
