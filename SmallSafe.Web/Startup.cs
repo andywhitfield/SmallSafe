@@ -41,6 +41,7 @@ public class Startup
             {
                 o.LoginPath = "/signin";
                 o.LogoutPath = "/signout";
+                o.AccessDeniedPath = "/twofactor";
                 o.Cookie.HttpOnly = true;
                 o.Cookie.MaxAge = _loginSessionTimeout;
                 o.ExpireTimeSpan = _loginSessionTimeout;

@@ -1,4 +1,4 @@
-namespace SmallSafe.Web.ViewModels.Home;
+namespace SmallSafe.Web.ViewModels.Login;
 
 public class NewUserViewModel : BaseViewModel
 {
