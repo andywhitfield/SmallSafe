@@ -108,7 +108,11 @@ public class Startup
 #endif
         services.AddCors();
         services.AddDistributedMemoryCache();
-        services.AddSession(options => options.IdleTimeout = _loginSessionTimeout);
+        services.AddSession(options =>
+        {
+            options.IdleTimeout = _loginSessionTimeout;
+            options.Cookie.IsEssential = true;
+        });
 
         services
             .AddDbContext<SqliteDataContext>((serviceProvider, options) =>
