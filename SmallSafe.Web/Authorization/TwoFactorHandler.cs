@@ -5,17 +5,17 @@ namespace SmallSafe.Web.Authorization;
 public class TwoFactorHandler : AuthorizationHandler<TwoFactorRequirement>
 {
     private readonly ILogger<TwoFactorHandler> _logger;
-    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IAuthorizationSession _authorizationSession;
 
-    public TwoFactorHandler(ILogger<TwoFactorHandler> logger, IHttpContextAccessor httpContextAccessor)
+    public TwoFactorHandler(ILogger<TwoFactorHandler> logger, IAuthorizationSession authorizationSession)
     {
         _logger = logger;
-        _httpContextAccessor = httpContextAccessor;
+        _authorizationSession = authorizationSession;
     }
 
     protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, TwoFactorRequirement requirement)
     {
-        if (context.User != null && _httpContextAccessor.HttpContext?.Session?.GetInt32("twofa") == 1)
+        if (context.User != null && _authorizationSession.IsValidated)
         {
             _logger.LogTrace("User has valid 2fa token");
             // TODO check session has password & 2fa success token
@@ -24,7 +24,7 @@ public class TwoFactorHandler : AuthorizationHandler<TwoFactorRequirement>
         }
         else
         {
-            _logger.LogTrace($"User missing [{context.User == null}] or has invalid 2fa token [{_httpContextAccessor.HttpContext?.Session?.GetInt32("twofa")}]");
+            _logger.LogTrace($"User missing [{context.User == null}] or has invalid 2fa token [{_authorizationSession.IsValidated}]");
         }
 
         return Task.CompletedTask;

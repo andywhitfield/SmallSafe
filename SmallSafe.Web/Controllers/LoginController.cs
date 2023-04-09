@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmallSafe.Secure.Model;
 using SmallSafe.Secure.Services;
+using SmallSafe.Web.Authorization;
 using SmallSafe.Web.Services;
 using SmallSafe.Web.ViewModels.Login;
 
@@ -16,15 +17,18 @@ public class LoginController : Controller
 {
     private readonly ILogger<LoginController> _logger;
     private readonly IAuthorizationService _authorizationService;
+    private readonly IAuthorizationSession _authorizationSession;
     private readonly IUserService _userService;
     private readonly ITwoFactor _twoFactor;
     private readonly ISafeDbService _safeDbService;
 
     public LoginController(ILogger<LoginController> logger, IAuthorizationService authorizationService,
-        IUserService userService, ITwoFactor twoFactor, ISafeDbService safeDbService)
+        IAuthorizationSession authorizationSession, IUserService userService, ITwoFactor twoFactor,
+        ISafeDbService safeDbService)
     {
         _logger = logger;
         _authorizationService = authorizationService;
+        _authorizationSession = authorizationSession;
         _userService = userService;
         _twoFactor = twoFactor;
         _safeDbService = safeDbService;
@@ -72,8 +76,7 @@ public class LoginController : Controller
             await _safeDbService.WriteAsync(masterpassword, Array.Empty<SafeGroup>(), stream);
             await _userService.UpdateUserDbAsync(user, Encoding.UTF8.GetString(stream.ToArray()));
             await _userService.LoginSuccessAsync(user);
-
-            HttpContext.Session.SetInt32("twofa", 1);
+            _authorizationSession.Validate(masterpassword);
 
             return Redirect("~/");
         }
@@ -99,8 +102,7 @@ public class LoginController : Controller
         {
             _logger.LogInformation("Successfully logged in & validated 2fa code");
             await _userService.LoginSuccessAsync(user);
-
-            HttpContext.Session.SetInt32("twofa", 1);
+            _authorizationSession.Validate(masterpassword);
 
             return RedirectTo(returnUrl);
         }

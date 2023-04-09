@@ -71,9 +71,11 @@ public class Startup
                 options.AccessDeniedPath = "/";
             });
         
-        services.AddAuthorization(options => options.AddPolicy("TwoFactor", policy => policy.AddRequirements(new TwoFactorRequirement())));
+        services.AddAuthorization(options => options.AddPolicy(TwoFactorRequirement.PolicyName, policy => policy.AddRequirements(new TwoFactorRequirement())));
         services.AddHttpContextAccessor();
-        services.AddScoped<IAuthorizationHandler, TwoFactorHandler>();
+        services
+            .AddScoped<IAuthorizationHandler, TwoFactorHandler>()
+            .AddScoped<IAuthorizationSession, AuthorizationSession>();
 
         services
             .AddDataProtection()

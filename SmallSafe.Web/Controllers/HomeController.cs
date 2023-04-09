@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SmallSafe.Web.Authorization;
 using SmallSafe.Web.Services;
 using SmallSafe.Web.ViewModels.Home;
 
@@ -35,7 +36,7 @@ public class HomeController : Controller
             return Redirect("~/newuser");
         }
 
-        if (!(await _authorizationService.AuthorizeAsync(User, "TwoFactor")).Succeeded)
+        if (!(await _authorizationService.AuthorizeAsync(User, TwoFactorRequirement.PolicyName)).Succeeded)
         {
             _logger.LogInformation("User hasn't entered their 2fa or password, redirecting to 2fa page");
             return Redirect("~/twofactor");
