@@ -11,13 +11,18 @@ public class HomeController : Controller
     private readonly ILogger<HomeController> _logger;
     private readonly IAuthorizationService _authorizationService;
     private readonly IUserService _userService;
+    private readonly ISafeDbReadWriteService _safeDbReadWriteService;
+    private readonly IAuthorizationSession _authorizationSession;
 
     public HomeController(ILogger<HomeController> logger, IAuthorizationService authorizationService,
-        IUserService userService)
+        IUserService userService, ISafeDbReadWriteService safeDbReadWriteService,
+        IAuthorizationSession authorizationSession)
     {
         _logger = logger;
         _authorizationService = authorizationService;
         _userService = userService;
+        _safeDbReadWriteService = safeDbReadWriteService;
+        _authorizationSession = authorizationSession;
     }
 
     [Authorize]
@@ -42,6 +47,16 @@ public class HomeController : Controller
             return Redirect("~/twofactor");
         }
 
+        var user = await _userService.GetUserAsync(User);
+        var groups = await _safeDbReadWriteService.ReadGroupsAsync(user, _authorizationSession.MasterPassword);
+        if (groups == null)
+        {
+            _logger.LogInformation("Invalid groups for user, logging out");
+            // TODO
+            return Redirect("~/signin");
+        }
+
+        _logger.LogDebug($"Got groups for user: [{string.Join(',', groups.Select(g => g.Name))}]");
         return View(new IndexViewModel(HttpContext));
     }
 

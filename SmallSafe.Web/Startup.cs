@@ -123,6 +123,7 @@ public class Startup
             })
             .AddScoped(sp => (ISqliteDataContext)sp.GetRequiredService<SqliteDataContext>())
             .AddScoped<IUserService, UserService>()
+            .AddTransient<ISafeDbReadWriteService, SafeDbReadWriteService>()
             .AddTransient<ISafeDbService, SafeDbService>()
             .AddTransient<IEncryptDecrypt, EncryptDecrypt>()
             .AddTransient<ITwoFactor, TwoFactor>();

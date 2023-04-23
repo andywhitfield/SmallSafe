@@ -1,4 +1,3 @@
-using System.Text;
 using System.Web;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -6,7 +5,6 @@ using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmallSafe.Secure.Model;
-using SmallSafe.Secure.Services;
 using SmallSafe.Web.Authorization;
 using SmallSafe.Web.Services;
 using SmallSafe.Web.ViewModels.Login;
@@ -20,18 +18,18 @@ public class LoginController : Controller
     private readonly IAuthorizationSession _authorizationSession;
     private readonly IUserService _userService;
     private readonly ITwoFactor _twoFactor;
-    private readonly ISafeDbService _safeDbService;
+    private readonly ISafeDbReadWriteService _safeDbReadWriteService;
 
     public LoginController(ILogger<LoginController> logger, IAuthorizationService authorizationService,
         IAuthorizationSession authorizationSession, IUserService userService, ITwoFactor twoFactor,
-        ISafeDbService safeDbService)
+        ISafeDbReadWriteService safeDbReadWriteService)
     {
         _logger = logger;
         _authorizationService = authorizationService;
         _authorizationSession = authorizationSession;
         _userService = userService;
         _twoFactor = twoFactor;
-        _safeDbService = safeDbService;
+        _safeDbReadWriteService = safeDbReadWriteService;
     }
 
     [HttpGet("~/signin")]
@@ -72,9 +70,7 @@ public class LoginController : Controller
         {
             _logger.LogInformation("Successfully created new safedb & validated 2fa code");
 
-            using MemoryStream stream = new();
-            await _safeDbService.WriteAsync(masterpassword, Array.Empty<SafeGroup>(), stream);
-            await _userService.UpdateUserDbAsync(user, Encoding.UTF8.GetString(stream.ToArray()));
+            await _safeDbReadWriteService.WriteGroupsAsync(user, masterpassword, Array.Empty<SafeGroup>());
             await _userService.LoginSuccessAsync(user);
             _authorizationSession.Validate(masterpassword);
 
@@ -98,7 +94,9 @@ public class LoginController : Controller
     public async Task<IActionResult> TwoFactorLogin([FromForm] string? masterpassword, [FromForm] string? twofa, [FromForm] string? returnUrl)
     {
         var user = await _userService.GetUserAsync(User);
-        if (!string.IsNullOrEmpty(masterpassword) && _twoFactor.ValidateTwoFactorCodeForUser(user, twofa))
+        if (!string.IsNullOrEmpty(masterpassword) &&
+            (await _safeDbReadWriteService.ReadGroupsAsync(user, masterpassword)) != null &&
+            _twoFactor.ValidateTwoFactorCodeForUser(user, twofa))
         {
             _logger.LogInformation("Successfully logged in & validated 2fa code");
             await _userService.LoginSuccessAsync(user);
