@@ -49,15 +49,8 @@ public class HomeController : Controller
 
         var user = await _userService.GetUserAsync(User);
         var groups = await _safeDbReadWriteService.ReadGroupsAsync(user, _authorizationSession.MasterPassword);
-        if (groups == null)
-        {
-            _logger.LogInformation("Invalid groups for user, logging out");
-            // TODO
-            return Redirect("~/signin");
-        }
-
         _logger.LogDebug($"Got groups for user: [{string.Join(',', groups.Select(g => g.Name))}]");
-        return View(new IndexViewModel(HttpContext));
+        return View(new IndexViewModel(HttpContext, groups));
     }
 
     public IActionResult Error() => View(new ErrorViewModel(HttpContext));

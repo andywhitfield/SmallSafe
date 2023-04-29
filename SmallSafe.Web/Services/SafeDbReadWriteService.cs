@@ -18,24 +18,29 @@ public class SafeDbReadWriteService : ISafeDbReadWriteService
         _safeDbService = safeDbService;
     }
 
-    public async Task<IEnumerable<SafeGroup>?> ReadGroupsAsync(UserAccount user, string masterpassword)
+    public async Task<IEnumerable<SafeGroup>?> TryReadGroupsAsync(UserAccount user, string masterpassword)
     {
-        if (user.SafeDb == null)
-        {
-            _logger.LogWarning($"User {user.UserAccountId} has no safedb set");
-            return null;
-        }
-
-        using MemoryStream stream = new(Encoding.UTF8.GetBytes(user.SafeDb));
         try
         {
-            return await _safeDbService.ReadAsync(masterpassword, stream);
+            return await ReadGroupsAsync(user, masterpassword);
         }
         catch (Exception ex)
         {
             _logger.LogWarning(ex, $"Could not read safedb for user {user.UserAccountId}");
             return null;
         }
+    }
+
+    public async Task<IEnumerable<SafeGroup>> ReadGroupsAsync(UserAccount user, string masterpassword)
+    {
+        if (user.SafeDb == null)
+        {
+            _logger.LogWarning($"User {user.UserAccountId} has no safedb set");
+            throw new InvalidOperationException("User has no safe db");
+        }
+
+        using MemoryStream stream = new(Encoding.UTF8.GetBytes(user.SafeDb));
+        return await _safeDbService.ReadAsync(masterpassword, stream);
     }
 
     public async Task WriteGroupsAsync(UserAccount user, string masterpassword, IEnumerable<SafeGroup> groups)

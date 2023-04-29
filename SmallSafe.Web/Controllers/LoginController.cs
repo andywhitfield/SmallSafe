@@ -95,7 +95,7 @@ public class LoginController : Controller
     {
         var user = await _userService.GetUserAsync(User);
         if (!string.IsNullOrEmpty(masterpassword) &&
-            (await _safeDbReadWriteService.ReadGroupsAsync(user, masterpassword)) != null &&
+            await _safeDbReadWriteService.TryReadGroupsAsync(user, masterpassword) != null &&
             _twoFactor.ValidateTwoFactorCodeForUser(user, twofa))
         {
             _logger.LogInformation("Successfully logged in & validated 2fa code");
