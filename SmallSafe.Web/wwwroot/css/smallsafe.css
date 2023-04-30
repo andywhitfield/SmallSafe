@@ -215,11 +215,13 @@ ul.ss-list-item>li>div {
     padding: 0 10px 0 0;
 }
 
-.ss-list-item-entry textarea {
+.ss-list-item-entry textarea,
+.ss-newentry textarea {
     white-space: nowrap;
     overflow: scroll;
     height: 80px;
     width: 100%;
+    min-width: 150px;
 }
 
 li.ss-list-item {

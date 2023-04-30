@@ -25,9 +25,13 @@
                                 <button title="Copy entry name to the clipboard"><img src="/images/copy.png" height="15" width="15" /></button>
                             }
                         </div>
-                        <div>***</div>
                         <div>
-                            <button title="Show encrypted value"><img src="/images/add.png" height="15" width="15" /> Show</button>
+                            <div class="ss-hidden-value">***</div>
+                            <div class="ss-visible-value"><textarea></textarea></div>
+                        </div>
+                        <div>
+                            <button class="ss-hidden-value" title="Show encrypted value"><img src="/images/add.png" height="15" width="15" /> Show</button>
+                            <button class="ss-visible-value" title="Hide encrypted value"><img src="/images/del.png" height="15" width="15" /> Hide</button>
                             <button title="Copy encrypted value to the clipboard"><img src="/images/copy.png" height="15" width="15" /> Copy to clipboard</button>
                         </div>
                     </div>
@@ -39,49 +43,6 @@
                     </div>
                 </li>
                 }
-
-                <li class="ss-list-item" data-group="TODO-entryid">
-                    <div><img class="ss-list-item-drag-handle" src="/images/drag.png" height="26" width="22" title="Move" /></div>
-                    <div></div>
-                    <div class="ss-list-item-entry">
-                        <div>
-                            Entry 1
-                            <button title="Copy entry name to the clipboard"><img src="/images/copy.png" height="15" width="15" /></button>
-                        </div>
-                        <div>***</div>
-                        <div>
-                            <button title="Show encrypted value"><img src="/images/add.png" height="15" width="15" /> Show</button>
-                            <button title="Copy encrypted value to the clipboard"><img src="/images/copy.png" height="15" width="15" /> Copy to clipboard</button>
-                        </div>
-                    </div>
-                    <div>
-                        <form data-confirm="Are you sure you want to delete this entry?" method="post" action="TODO">
-                        @Html.AntiForgeryToken()
-                        <button title="Delete"><img src="/images/close.png" height="15" width="15" /> Delete</button>
-                        </form>
-                    </div>
-                </li>
-                <li class="ss-list-item" data-group="TODO-entryid">
-                    <div><img class="ss-list-item-drag-handle" src="/images/drag.png" height="26" width="22" title="Move" /></div>
-                    <div></div>
-                    <div class="ss-list-item-entry">
-                        <div>
-                            Entry 2
-                            <button title="Copy entry name to the clipboard"><img src="/images/copy.png" height="15" width="15" /></button>
-                        </div>
-                        <div><textarea>This is the decrypted value</textarea></div>
-                        <div>
-                            <button title="Hide encrypted value"><img src="/images/del.png" height="15" width="15" /> Hide</button>
-                            <button title="Copy encrypted value to the clipboard"><img src="/images/copy.png" height="15" width="15" /> Copy to clipboard</button>
-                        </div>
-                    </div>
-                    <div>
-                        <form data-confirm="Are you sure you want to delete this entry?" method="post" action="TODO">
-                        @Html.AntiForgeryToken()
-                        <button title="Delete"><img src="/images/close.png" height="15" width="15" /> Delete</button>
-                        </form>
-                    </div>
-                </li>
             </ul>
         </li>
     </ul>
@@ -90,7 +51,7 @@
     }
 
     <p>
-    <form method="post" action="/group/@Model.Group.Id/entry">
+    <form method="post" action="/group/@Model.Group.Id/entry" class="ss-newentry">
     @Html.AntiForgeryToken()
     <fieldset>
     <legend>Add a new entry</legend>
@@ -110,3 +71,21 @@
     </form>
     </p>
 </article>
+
+@section Scripts {
+<script type="text/javascript">
+    $(function() {
+        $('.ss-visible-value').hide();
+        $('button.ss-hidden-value').click(function() {
+            let $entryGroup = $(this).parent().parent();
+            $('.ss-hidden-value', $entryGroup).hide();
+            $('.ss-visible-value', $entryGroup).show();
+        });
+        $('button.ss-visible-value').click(function() {
+            let $entryGroup = $(this).parent().parent();
+            $('.ss-visible-value', $entryGroup).hide();
+            $('.ss-hidden-value', $entryGroup).show();
+        });
+    });
+</script>
+}
