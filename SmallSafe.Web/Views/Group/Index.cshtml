@@ -77,13 +77,22 @@
     $(function() {
         $('.ss-visible-value').hide();
         $('button.ss-hidden-value').click(function() {
-            let $entryGroup = $(this).parent().parent();
-            $('.ss-hidden-value', $entryGroup).hide();
-            $('.ss-visible-value', $entryGroup).show();
+            let $entryGroup = $(this).parentsUntil('li.ss-list-item').parent();
+            let $groupId = $entryGroup.attr('data-group');
+            let $entryId = $entryGroup.attr('data-entry');
+
+            $.getJSON('/api/group/' + $groupId + '/entry/' + $entryId)
+                .done(function(data) {
+                    $('textarea', $entryGroup).val(data.value);
+                    $('.ss-hidden-value', $entryGroup).hide();
+                    $('.ss-visible-value', $entryGroup).show();
+                })
+                .fail(function() { window.location.reload(); });
         });
         $('button.ss-visible-value').click(function() {
-            let $entryGroup = $(this).parent().parent();
+            let $entryGroup = $(this).parentsUntil('li.ss-list-item');
             $('.ss-visible-value', $entryGroup).hide();
+            $('textarea', $entryGroup).val('');
             $('.ss-hidden-value', $entryGroup).show();
         });
     });
