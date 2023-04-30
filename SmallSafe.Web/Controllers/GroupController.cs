@@ -23,10 +23,20 @@ public class GroupController : Controller
         _safeDbReadWriteService = safeDbReadWriteService;
     }
 
-    [HttpGet("~/group/{groupId}")]
-    public IActionResult Index(int groupId)
+    [HttpGet("~/group/{groupId:guid}")]
+    public async Task<IActionResult> Index(Guid groupId)
     {
-        return View(new IndexViewModel(HttpContext));
+        _logger.LogDebug($"Viewing group {groupId}");
+        var user = await _userService.GetUserAsync(User);
+        var groups = await _safeDbReadWriteService.ReadGroupsAsync(user, _authorizationSession.MasterPassword);
+        var group = groups.FirstOrDefault(g => g.Id == groupId);
+        if (group == null)
+        {
+            _logger.LogWarning($"Group [{groupId}] not found, redirecting to home page");
+            return Redirect("~/");
+        }
+
+        return View(new IndexViewModel(HttpContext, group));
     }
 
     [HttpPost("~/group"), ValidateAntiForgeryToken]
@@ -56,19 +66,13 @@ public class GroupController : Controller
         return Redirect("~/");
     }
 
-    [HttpPost("~/group/delete/{name}"), ValidateAntiForgeryToken]
-    public async Task<IActionResult> DeleteGroup(string name)
+    [HttpPost("~/group/{groupId:guid}/delete"), ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteGroup(Guid groupId)
     {
-        if (string.IsNullOrEmpty(name))
-        {
-            _logger.LogDebug("No group name provided, redirecting to home page");
-            return Redirect("~/");
-        }
-
-        _logger.LogDebug($"Deleting safe group {name}");
+        _logger.LogDebug($"Deleting safe group {groupId}");
         var user = await _userService.GetUserAsync(User);
         var groups = await _safeDbReadWriteService.ReadGroupsAsync(user, _authorizationSession.MasterPassword);
-        await _safeDbReadWriteService.WriteGroupsAsync(user, _authorizationSession.MasterPassword, groups.Where(g => g.Name != name));
+        await _safeDbReadWriteService.WriteGroupsAsync(user, _authorizationSession.MasterPassword, groups.Where(g => g.Id != groupId));
         _logger.LogDebug($"Successfully saved groups");
 
         return Redirect("~/");
