@@ -38,6 +38,31 @@ function ssInitialise() {
         },
         onDrop: function(item, container, _super, event) {
             _super(item, container, event);
+
+            let groupMoved = item.attr('data-group');
+            let entryMoved = item.attr('data-entry');
+            if (typeof groupMoved !== 'undefined' && typeof entryMoved !== 'undefined') {
+                let prevEntry = item.prev('li').attr('data-entry');
+
+                console.log('moving group/entry ' + groupMoved + '/' + entryMoved + ' to be after ' + prevEntry);
+
+                if (typeof prevEntry === 'undefined')
+                    prevEntry = null;
+
+                console.log('moving group ' + groupMoved + ' entry ' + entryMoved + ' to be after ' + prevEntry);
+                $.post('/api/group/' + groupMoved + '/entry/' + entryMoved + '/move', { prevEntryId: prevEntry })
+                    .done(function() { console.log('entry move successful'); })
+                    .fail(function() { window.location.reload(); });
+            } else if (typeof groupMoved !== 'undefined') {
+                let prevGroup = item.prev('li').attr('data-group');
+                if (typeof prevGroup === 'undefined')
+                    prevGroup = null;
+
+                console.log('moving group ' + groupMoved + ' to be after ' + prevGroup);
+                $.post('/api/group/' + groupMoved + '/move', { prevGroupId: prevGroup })
+                    .done(function() { console.log('group move successful'); })
+                    .fail(function() { window.location.reload(); });
+            }
         }
     });
 }

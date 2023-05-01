@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmallSafe.Secure;
+using SmallSafe.Secure.Model;
 using SmallSafe.Web.Authorization;
 using SmallSafe.Web.Services;
 using SmallSafe.Web.ViewModels.Api;
@@ -56,5 +57,38 @@ public class GroupEntryApiController : ControllerBase
         }
 
         return new DecryptResult(_encryptDecrypt.Decrypt(_authorizationSession.MasterPassword, entry.IV, entry.Salt, entry.EncryptedValue));
+    }
+
+    [HttpPost("~/api/group/{groupId:guid}/entry/{entryId:guid}/move")]
+    public async Task<ActionResult> MoveGroup(Guid groupId, Guid entryId, [FromForm] Guid? prevEntryId)
+    {
+        _logger.LogDebug($"Moving group {groupId} entry {entryId} to be after {prevEntryId}");
+
+        var user = await _userService.GetUserAsync(User);
+        var groups = await _safeDbReadWriteService.ReadGroupsAsync(user, _authorizationSession.MasterPassword);
+        var group = groups.FirstOrDefault(g => g.Id == groupId);
+        if (group == null)
+        {
+            _logger.LogError($"Group [{groupId}] not found");
+            return BadRequest();
+        }
+
+        var entry = group.Entries?.Find(e => e.Id == entryId);
+        if (entry == null)
+        {
+            _logger.LogError($"Entry [{entryId}] not found");
+            return BadRequest();
+        }
+
+        var prevEntry = group.Entries?.Find(e => e.Id == prevEntryId);
+        if (prevEntry == null && prevEntryId != null)
+        {
+            _logger.LogError($"Previous entry [{prevEntryId}] not found");
+            return BadRequest();
+        }
+
+        group.Entries = (group.Entries?.Move(entry, prevEntry, e => e.Id) ?? Enumerable.Empty<SafeEntry>()).ToList();
+        await _safeDbReadWriteService.WriteGroupsAsync(user, _authorizationSession.MasterPassword, groups);
+        return Ok();
     }
 }
