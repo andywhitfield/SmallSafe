@@ -73,7 +73,19 @@ public class GroupController : Controller
         var user = await _userService.GetUserAsync(User);
         var groups = await _safeDbReadWriteService.ReadGroupsAsync(user, _authorizationSession.MasterPassword);
         await _safeDbReadWriteService.WriteGroupsAsync(user, _authorizationSession.MasterPassword, groups.Where(g => g.Id != groupId));
-        _logger.LogDebug($"Successfully saved groups");
+        _logger.LogDebug("Successfully saved groups");
+
+        return Redirect("~/");
+    }
+
+    [HttpPost("~/group/sort"), ValidateAntiForgeryToken]
+    public async Task<IActionResult> SortGroups()
+    {
+        _logger.LogDebug("Sorting safe groups by name");
+        var user = await _userService.GetUserAsync(User);
+        var groups = await _safeDbReadWriteService.ReadGroupsAsync(user, _authorizationSession.MasterPassword);
+        await _safeDbReadWriteService.WriteGroupsAsync(user, _authorizationSession.MasterPassword, groups.OrderBy(g => g.Name?.ToLowerInvariant()));
+        _logger.LogDebug("Successfully saved groups");
 
         return Redirect("~/");
     }

@@ -2,7 +2,7 @@
 
 <article>
     <div class="ss-group-toolbar">
-    <a href="~/">&lt; Back</a> | <a href="TODO">Sort by name</a> | <input type="text" name="filter" placeholder="Filter..." />
+    <a href="~/">&lt; Back</a> | <form method="post" action="/group/@Model.Group.Id/sort">@Html.AntiForgeryToken()<button title="Sort entires by name">Sort by name</button></form> | <input type="text" name="filter" placeholder="Filter..." />
     </div>
 
     <p>

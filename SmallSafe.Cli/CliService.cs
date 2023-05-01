@@ -285,10 +285,10 @@ public class CliService
     {
         while (true)
         {
-            _logger.LogInformation($"1. View");
-            _logger.LogInformation($"2. Edit");
-            _logger.LogInformation($"3. Delete");
-            _logger.LogInformation($"x. Back");
+            _logger.LogInformation("1. View");
+            _logger.LogInformation("2. Edit");
+            _logger.LogInformation("3. Delete");
+            _logger.LogInformation("x. Back");
 
             var selection = Console.ReadLine();
             switch (selection)
@@ -309,7 +309,7 @@ public class CliService
                     _logger.LogInformation("");
                     break;
                 case "2":
-                    _logger.LogInformation($"Enter the new name of the new entry (optional):");
+                    _logger.LogInformation("Enter the new name of the new entry (optional):");
                     var entryNewName = (Console.ReadLine() ?? "").Trim();
 
                     _logger.LogInformation("Enter the new value to be encrypted for the entry:");

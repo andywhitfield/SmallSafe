@@ -2,7 +2,7 @@
 
 <article>
     <div class="ss-group-toolbar">
-    <a href="TODO">Sort by name</a> | <input type="text" name="filter" placeholder="Filter groups..." />
+    <form method="post" action="/group/sort">@Html.AntiForgeryToken()<button title="Sort groups by name">Sort by name</button></form> | <input type="text" name="filter" placeholder="Filter groups..." />
     </div>
 
     @if (Model.Groups.Any()) {
