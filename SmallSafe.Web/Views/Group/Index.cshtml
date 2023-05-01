@@ -32,7 +32,8 @@
                         <div>
                             <button class="ss-hidden-value" title="Show encrypted value"><img src="/images/add.png" height="15" width="15" /> Show</button>
                             <button class="ss-visible-value" title="Hide encrypted value"><img src="/images/del.png" height="15" width="15" /> Hide</button>
-                            <button title="Copy encrypted value to the clipboard"><img src="/images/copy.png" height="15" width="15" /> Copy to clipboard</button>
+                            <button class="ss-hidden-value" title="Decrypt and copy the value to the clipboad"><img src="/images/copy.png" height="15" width="15" /> Decrypt &amp; copy to clipboard</button>
+                            <button class="ss-visible-value" title="Copy encrypted value to the clipboard"><img src="/images/copy.png" height="15" width="15" /> Copy to clipboard</button>
                         </div>
                     </div>
                     <div>
@@ -74,27 +75,6 @@
 
 @section Scripts {
 <script type="text/javascript">
-    $(function() {
-        $('.ss-visible-value').hide();
-        $('button.ss-hidden-value').click(function() {
-            let $entryGroup = $(this).parentsUntil('li.ss-list-item').parent();
-            let $groupId = $entryGroup.attr('data-group');
-            let $entryId = $entryGroup.attr('data-entry');
-
-            $.getJSON('/api/group/' + $groupId + '/entry/' + $entryId)
-                .done(function(data) {
-                    $('textarea', $entryGroup).val(data.value);
-                    $('.ss-hidden-value', $entryGroup).hide();
-                    $('.ss-visible-value', $entryGroup).show();
-                })
-                .fail(function() { window.location.reload(); });
-        });
-        $('button.ss-visible-value').click(function() {
-            let $entryGroup = $(this).parentsUntil('li.ss-list-item');
-            $('.ss-visible-value', $entryGroup).hide();
-            $('textarea', $entryGroup).val('');
-            $('.ss-hidden-value', $entryGroup).show();
-        });
-    });
+    $(function() { ssInitialiseSafeEntry(); });
 </script>
 }

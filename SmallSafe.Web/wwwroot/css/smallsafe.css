@@ -217,7 +217,7 @@ ul.ss-list-item>li>div {
 
 .ss-list-item-entry textarea,
 .ss-newentry textarea {
-    white-space: nowrap;
+    white-space: pre;
     overflow: scroll;
     height: 80px;
     width: 100%;
