@@ -7,7 +7,7 @@
 
     <p>
         @Model.Group.Name
-        <button title="Copy group name to the clipboard"><img src="/images/copy.png" height="15" width="15" /></button>
+        <button title="Copy group name to the clipboard" data-clipboard="@Model.Group.Name"><img src="/images/copy.png" height="15" width="15" /></button>
     </p>
 
     @if (Model.Group.Entries?.Any() ?? false) {
@@ -22,7 +22,7 @@
                         <div>
                             @if (!string.IsNullOrEmpty(safeEntry.Name)) {
                                 @safeEntry.Name
-                                <button title="Copy entry name to the clipboard"><img src="/images/copy.png" height="15" width="15" /></button>
+                                <button title="Copy entry name to the clipboard" data-clipboard="@safeEntry.Name"><img src="/images/copy.png" height="15" width="15" /></button>
                             }
                         </div>
                         <div>

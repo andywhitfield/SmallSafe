@@ -27,6 +27,9 @@ function ssInitialise() {
             return false;
         }
     });
+    $('button[data-clipboard]').click(function() {
+        ssCopyToClipboard($(this).attr('data-clipboard'));
+    });
 
     $('ul.ss-list').sortable({
         handle: '.ss-list-item-drag-handle',
