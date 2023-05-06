@@ -57,8 +57,7 @@
     <main>
         <aside>
             <nav>
-                <form method="post" action="TODO">
-                @Html.AntiForgeryToken()
+                <form name="generatepassword" method="get">
                 <fieldset>
                 <legend>Password Generator</legend>
                 
@@ -86,22 +85,10 @@
                 <button type="submit">Generate</button>
                 </div>
 
-                <p>
-
-                <div>
-                <button title="Copy password to the clipboard"><img src="/images/copy.png" height="15" width="15" /></button>
-                <input type="text" name="genpw1" />
-                </div>
-
-                <div>
-                <button title="Copy password to the clipboard"><img src="/images/copy.png" height="15" width="15" /></button>
-                <input type="text" name="genpw2" />
-                </div>
-
-                </p>
-
                 </fieldset>
                 </form>
+
+                <p class="generated-passwords"></p>
             </nav>
         </aside>
 

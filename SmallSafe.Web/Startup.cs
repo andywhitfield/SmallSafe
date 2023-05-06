@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using SmallSafe.Secure;
+using SmallSafe.Secure.Dictionary;
 using SmallSafe.Secure.Services;
 using SmallSafe.Web.Authorization;
 using SmallSafe.Web.Data;
@@ -126,7 +127,9 @@ public class Startup
             .AddTransient<ISafeDbReadWriteService, SafeDbReadWriteService>()
             .AddTransient<ISafeDbService, SafeDbService>()
             .AddTransient<IEncryptDecrypt, EncryptDecrypt>()
-            .AddTransient<ITwoFactor, TwoFactor>();
+            .AddTransient<ITwoFactor, TwoFactor>()
+            .AddScoped<IRandomPasswordGenerator, RandomPasswordGenerator>()
+            .AddSingleton<IWordDictionary, WordDictionary>();
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)

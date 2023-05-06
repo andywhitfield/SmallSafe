@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SmallSafe.Secure.Model;
 using SmallSafe.Web.Authorization;
 using SmallSafe.Web.Services;
 

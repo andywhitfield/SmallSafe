@@ -31,6 +31,28 @@ function ssInitialise() {
         ssCopyToClipboard($(this).attr('data-clipboard'));
     });
 
+    $('form[name="generatepassword"]').submit(function(event) {
+        $.getJSON('/api/generatepassword?genpwmin='+$('form[name="generatepassword"] input[name="genpwmin"]').val()+'&genpwmax='+$('form[name="generatepassword"] input[name="genpwmax"]').val()+'&genpwnums='+($('form[name="generatepassword"] input[name="genpwnums"]').is(':checked') ? 'true' : 'false')+'&genpwallchars='+($('form[name="generatepassword"] input[name="genpwallchars"]').is(':checked') ? 'true' : 'false')+'')
+            .done(function(data) {
+                $('.generated-passwords').empty();
+                data.forEach(pw => {
+                    let $newPw = $('.generated-passwords').append('<div><button title="Copy password to the clipboard"><img src="/images/copy.png" height="15" width="15" /></button> <input type="text" /></div>');
+                    $('div:last button', $newPw).attr('data-clipboard', pw);
+                    $('div:last input', $newPw).val(pw);
+                });
+                $('.generated-passwords button[data-clipboard]').click(function() {
+                    ssCopyToClipboard($(this).attr('data-clipboard'));
+                });
+            })
+            .fail(function() {
+                $('.generated-passwords').empty();
+                $('.generated-passwords').append('<div>Sorry, could not generate passwords. Please try again later.</div>');
+            });
+
+        event.preventDefault();
+        return false;
+    });
+
     $('ul.ss-list').sortable({
         handle: '.ss-list-item-drag-handle',
         isValidTarget: function(item, container) {
