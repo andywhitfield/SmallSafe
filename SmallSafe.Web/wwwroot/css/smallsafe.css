@@ -232,6 +232,10 @@ li.ss-list-item:hover {
     border-color: #ffbaba;
 }
 
+button.ss-delete {
+    min-width: 90px;
+}
+
 body.dragging,
 body.dragging * {
     cursor: move !important;
