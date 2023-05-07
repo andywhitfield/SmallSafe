@@ -233,7 +233,7 @@ li.ss-list-item:hover {
 }
 
 button.ss-delete {
-    min-width: 100px;
+    min-width: 110px;
 }
 
 body.dragging,

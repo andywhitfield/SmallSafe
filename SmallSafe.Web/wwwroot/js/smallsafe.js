@@ -1,5 +1,11 @@
 function ssInitialise() {
-    $(window).resize(function() {
+    let windowWidth = $(window).width();
+    $(window).on('resize', function() {
+        let newWindowWidth = $(window).width();
+        if (Math.abs(newWindowWidth - windowWidth) < 2)
+            return;
+
+        windowWidth = newWindowWidth;
         $('aside').css('display', '');
         if ($('.nav-close:visible').length > 0) {
             $('.nav-close').css('display', '');
