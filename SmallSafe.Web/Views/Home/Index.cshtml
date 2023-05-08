@@ -10,7 +10,7 @@
         <li class="ss-list">
             <ul class="ss-list-item">
                 @foreach (var safeGroup in Model.Groups) {
-                <li class="ss-list-item" data-group="@safeGroup.Id">
+                <li class="ss-list-item" data-group="@safeGroup.Id" data-filter="@safeGroup.Name">
                     <div><img class="ss-list-item-drag-handle" src="/images/drag.png" height="26" width="22" title="Move" /></div>
                     <div></div>
                     <div data-href="/group/@safeGroup.Id" class="ss-list-item-link">@safeGroup.Name</div>

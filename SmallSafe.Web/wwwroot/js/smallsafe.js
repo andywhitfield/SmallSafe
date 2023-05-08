@@ -59,6 +59,21 @@ function ssInitialise() {
         return false;
     });
 
+    $('input[name="filter"]').on('keyup', function(event) {
+        let filterVal = $(this).val().trim().toUpperCase();
+        console.log('filtering '+filterVal);
+        if (filterVal === '') {
+            $('li.ss-list-item[data-filter]').show();
+        } else {
+            $('li.ss-list-item[data-filter]').each(function() {
+                if ($(this).attr('data-filter').toUpperCase().indexOf(filterVal) === -1)
+                    $(this).hide();
+                else
+                    $(this).show();
+            });
+        }
+    });
+
     $('ul.ss-list').sortable({
         handle: '.ss-list-item-drag-handle',
         isValidTarget: function(item, container) {
