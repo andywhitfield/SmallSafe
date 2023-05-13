@@ -3,7 +3,12 @@
 <form method="post" action="/twofactor">
 @Html.AntiForgeryToken()
 <article>
+    @if (Model.IsPasswordOrTwoFaInvalid) {
+    <h1>Welcome</h1>
+    <p class="ss-validation-failure">Your master password for authenticator code is invalid, please try again.</p>
+    } else {
     <h1>Welcome back</h1>
+    }
 
     <p>
         <div>Enter your master password:</div>

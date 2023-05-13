@@ -158,6 +158,10 @@ footer {
     font-size: 10pt;
 }
 
+.ss-validation-failure {
+    font-weight: bold;
+}
+
 div.ss-group-toolbar form {
     display: inline;
 }

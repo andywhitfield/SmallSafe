@@ -107,7 +107,7 @@ public class LoginController : Controller
 
         await _userService.LoginFailureAsync(user);
         _logger.LogWarning("Bad master password or invalid 2fa code, returning to login page");
-        return View("TwoFactorLogin", new TwoFactorLoginViewModel(HttpContext, returnUrl));
+        return View("TwoFactorLogin", new TwoFactorLoginViewModel(HttpContext, returnUrl, true));
     }
 
     private RedirectResult RedirectTo(string? returnUrl) =>
