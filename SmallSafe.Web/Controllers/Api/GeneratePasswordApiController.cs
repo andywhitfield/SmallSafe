@@ -27,6 +27,6 @@ public class GeneratePasswordApiController : ControllerBase
         if (genpwallchars != null)
             _randomPasswordGenerator.AllowPunctuation = genpwallchars.Value;
         
-        return Ok(Enumerable.Range(0, 7).Select(_ => _randomPasswordGenerator.Generate()));
+        return Ok(Enumerable.Range(0, 10).Select(_ => _randomPasswordGenerator.Generate()));
     }
 }

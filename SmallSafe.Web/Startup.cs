@@ -95,6 +95,7 @@ public class Startup
             logging.SetMinimumLevel(LogLevel.Trace);
         });
 
+        services.Configure<DropboxConfig>(Configuration.GetSection("Dropbox"));
         services.Configure<CookiePolicyOptions>(o =>
         {
             o.CheckConsentNeeded = context => false;

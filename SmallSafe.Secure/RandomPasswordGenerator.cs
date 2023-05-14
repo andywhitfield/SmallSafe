@@ -55,7 +55,10 @@ public class RandomPasswordGenerator : IRandomPasswordGenerator
                 break;
 
             string? wordToAdd;
-            while ((wordToAdd = WordFrom(_dictionary.Words, maxWordLength: maxPasswordLength - password.Length)) == null) { }
+            while (
+                (wordToAdd = WordFrom(_dictionary.Words, maxWordLength: maxPasswordLength - password.Length)) == null ||
+                (!AllowNumbers && wordToAdd.Any(char.IsDigit)) ||
+                (!AllowPunctuation && wordToAdd.Any(c => !char.IsLetterOrDigit(c)))) { }
             password.Append(wordToAdd);
 
             if (password.Length >= maxPasswordLength)

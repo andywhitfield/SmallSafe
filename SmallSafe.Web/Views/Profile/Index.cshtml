@@ -1,5 +1,29 @@
 ﻿@model SmallSafe.Web.ViewModels.Profile.IndexViewModel
 
 <article>
+    <h1>Change master password</h1>
     <p>TODO</p>
+    
+    <h1>Change two factor code</h1>
+    <p>TODO</p>
+
+    <h1>Dropbox sync</h1>
+    @if (Model.IsConnectedToDropbox) {
+    <p>
+        Stop sync'ing your encrypted Safe DB file with Dropbox.
+        <form action="/profile/dropbox-disconnect" method="post">
+        <p><button type="submit">Disconnect</button></p>
+        @Html.AntiForgeryToken()
+        </form>
+    </p>
+    } else {
+    <p>
+        Connect to Dropbox so any changes to your passwords are sync'd to Dropbox.
+        Your encrypted Safe DB file is uploaded to the SmallSafe Dropbox app folder.
+        <form action="/profile/dropbox-connect" method="post">
+        <p><button type="submit">Connect</button></p>
+        @Html.AntiForgeryToken()
+        </form>
+    </p>
+    }
 </article>

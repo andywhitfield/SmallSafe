@@ -1,5 +1,9 @@
 using System.Security.Claims;
+using System.Text;
+using Dropbox.Api;
+using Dropbox.Api.Files;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using SmallSafe.Web.Data;
 using SmallSafe.Web.Data.Models;
 
@@ -7,9 +11,16 @@ namespace SmallSafe.Web.Services;
 
 public class UserService : IUserService
 {
+    private readonly ILogger<UserService> _logger;
+    private readonly IOptionsSnapshot<DropboxConfig> _dropboxConfig;
     private readonly SqliteDataContext _dbContext;
 
-    public UserService(SqliteDataContext dbContext) => _dbContext = dbContext;
+    public UserService(ILogger<UserService> logger, IOptionsSnapshot<DropboxConfig> dropboxConfig, SqliteDataContext dbContext)
+    {
+        _logger = logger;
+        _dropboxConfig = dropboxConfig;
+        _dbContext = dbContext;
+    }
 
     public async Task<bool> IsNewUserAsync(ClaimsPrincipal user)
     {
@@ -32,9 +43,20 @@ public class UserService : IUserService
         return userAccount ?? await CreateUserAsync(authenticationUri);
     }
 
-    public Task UpdateUserDbAsync(UserAccount user, string safeDb)
+    public async Task UpdateUserDbAsync(UserAccount user, string safeDb)
     {
         user.SafeDb = safeDb;
+        user.LastUpdateDateTime = DateTime.UtcNow;
+
+        if (user.IsConnectedToDropbox)
+            await CopyToDropboxAsync(user);
+        await _dbContext.SaveChangesAsync();
+    }
+
+    public Task UpdateUserDropboxAsync(UserAccount user, string? dropboxAccessToken, string? dropboxRefreshToken)
+    {
+        user.DropboxAccessToken = dropboxAccessToken;
+        user.DropboxRefreshToken = dropboxRefreshToken;
         user.LastUpdateDateTime = DateTime.UtcNow;
         return _dbContext.SaveChangesAsync();
     }
@@ -66,4 +88,24 @@ public class UserService : IUserService
     }
 
     private string? GetIdentifierFromPrincipal(ClaimsPrincipal user) => user?.FindFirstValue("sub");
+
+    private async Task CopyToDropboxAsync(UserAccount user)
+    {
+        _logger.LogInformation($"Saving SafeDB file to Dropbox for user {user.UserAccountId}");
+
+        using var contentStream = new MemoryStream(Encoding.ASCII.GetBytes(user.SafeDb ?? ""));
+        using var dropboxClient = new DropboxClient(user.DropboxAccessToken, user.DropboxRefreshToken,
+            _dropboxConfig.Value.SmallSafeAppKey, _dropboxConfig.Value.SmallSafeAppSecret, new DropboxClientConfig());
+        if (!await dropboxClient.RefreshAccessToken(new[] { "files.content.write" }))
+        {
+            _logger.LogError($"Could not refresh Dropbox access token for user {user.UserAccountId}");
+            return;
+        }
+
+        var file = await dropboxClient.Files.UploadAsync(
+            $"/{_dropboxConfig.Value.Filename ?? "smallsafe.db.json"}",
+            WriteMode.Overwrite.Instance,
+            body: contentStream);
+        _logger.LogTrace($"Saved to dropbox {file.PathDisplay}/{file.Name} rev {file.Rev}");
+    }
 }
