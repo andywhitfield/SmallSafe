@@ -2,10 +2,30 @@
 
 <article>
     <h1>Change master password</h1>
-    <p>TODO</p>
+    <form action="/profile/password" method="post">
+    @if (Model.IsPasswordOrTwoFaInvalid) {
+    <p class="ss-validation-failure">Your master password or authenticator code is invalid, please try again.</p>
+    } else if (Model.PasswordUpdated) {
+    <p>Your master password has been successfully updated.</p>
+    }
+    <p>
+        <div>Enter your current master password:</div>
+        <input type="password" title="Enter your current master password" name="currentpassword" />
+    </p>
+
+    <p>
+        <div>Enter your new master password:</div>
+        <input type="password" title="Enter your new master password" name="newpassword" />
+    </p>
+
+    <p>
+        <div>Enter the code displayed in your authenticator app:</div>
+        <input type="text" title="Enter the code generated generated in your authenticator app" name="twofa" />
+    </p>
     
-    <h1>Change two factor code</h1>
-    <p>TODO</p>
+    <p><button type="submit">Update</button></p>
+    @Html.AntiForgeryToken()
+    </form>
 
     <h1>Dropbox sync</h1>
     @if (Model.IsConnectedToDropbox) {
