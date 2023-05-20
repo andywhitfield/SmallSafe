@@ -1,0 +1,25 @@
+﻿@model SmallSafe.Web.ViewModels.Find.IndexViewModel
+
+<article>
+    <h1>Find: @Model.Find</h1>
+    @if (Model.FoundGroups.Any() || Model.FoundEntries.Any()) {
+        @if (Model.FoundGroups.Any()) {
+            <p>
+            <h1>Groups:</h1>
+            @foreach (var g in Model.FoundGroups) {
+            <div><a href="/group/@g.Id">@g.Name</a></div>
+            }
+            </p>
+        }
+        @if (Model.FoundEntries.Any()) {
+            <p>
+            <h1>Entries:</h1>
+            @foreach (var e in Model.FoundEntries) {
+            <div><a href="/group/@e.Group.Id">@e.Group.Name</a> / <a href="/group/@(e.Group.Id)?filter=@e.Entry.Name">@e.Entry.Name</a></div>
+            }
+            </p>
+        }
+    } else {
+        <p>Sorry, no group or entry found matching: @(Model.Find).</p>
+    }
+</article>

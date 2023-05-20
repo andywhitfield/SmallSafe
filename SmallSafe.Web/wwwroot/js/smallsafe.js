@@ -74,6 +74,13 @@ function ssInitialise() {
         }
     });
 
+    const params = new Proxy(new URLSearchParams(window.location.search), {
+        get: (searchParams, prop) => searchParams.get(prop),
+    });
+    let filterValue = params.filter.trim();
+    if (filterValue.trim() !== '')
+        $('input[name="filter"]').val(filterValue).trigger('keyup');
+
     $('ul.ss-list').sortable({
         handle: '.ss-list-item-drag-handle',
         isValidTarget: function(item, container) {

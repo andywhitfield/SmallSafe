@@ -30,8 +30,9 @@
             <div class="navbar-nav">
                 @if (Model.IsLoggedIn) {                    
                     <span class="narrow-hide">
-                    <form method="get" action="/find">
-                    <input type="text" name="q" placeholder="Find group or item..." /> <button type="submit">Find</button>
+                    <form method="post" action="/find">
+                    @Html.AntiForgeryToken()
+                    <input type="text" name="q" value="@Model.Find" placeholder="Find group or item..." /> <button type="submit">Find</button>
                     </form> |
                     </span>
 
