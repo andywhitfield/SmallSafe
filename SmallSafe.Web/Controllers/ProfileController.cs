@@ -2,6 +2,7 @@ using Dropbox.Api;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using SmallSafe.Secure;
 using SmallSafe.Secure.Model;
 using SmallSafe.Web.Authorization;
 using SmallSafe.Web.Data;
@@ -19,6 +20,7 @@ public class ProfileController : Controller
     private readonly IAuthorizationSession _authorizationSession;
     private readonly ISafeDbReadWriteService _safeDbReadWriteService;
     private readonly ITwoFactor _twoFactor;
+    private readonly IEncryptDecrypt _encryptDecrypt;
 
     public ProfileController(
         ILogger<ProfileController> logger,
@@ -26,7 +28,8 @@ public class ProfileController : Controller
         IUserService userService,
         IAuthorizationSession authorizationSession,
         ISafeDbReadWriteService safeDbReadWriteService,
-        ITwoFactor twoFactor)
+        ITwoFactor twoFactor,
+        IEncryptDecrypt encryptDecrypt)
     {
         _logger = logger;
         _dropboxConfig = dropboxConfig;
@@ -34,6 +37,7 @@ public class ProfileController : Controller
         _authorizationSession = authorizationSession;
         _safeDbReadWriteService = safeDbReadWriteService;
         _twoFactor = twoFactor;
+        _encryptDecrypt = encryptDecrypt;
     }
 
     [HttpGet("~/profile")]
@@ -55,6 +59,20 @@ public class ProfileController : Controller
             _twoFactor.ValidateTwoFactorCodeForUser(user, twofa))
         {
             _logger.LogInformation("Current password & 2fa code valid, updating master password");
+            foreach (var entry in groups.SelectMany(g => g.Entries ?? Enumerable.Empty<SafeEntry>()))
+            {
+                if (entry.IV == null || entry.Salt == null || entry.EncryptedValue == null)
+                {
+                    _logger.LogWarning($"Entry {entry.Id} has a null iv/salt/encrypted value, can't re-encrypt");
+                    continue;
+                }
+
+                var value = _encryptDecrypt.Decrypt(_authorizationSession.MasterPassword, entry.IV, entry.Salt, entry.EncryptedValue);
+                var (encrypted, iv, salt) = _encryptDecrypt.Encrypt(newpassword, value);
+                entry.EncryptedValue = encrypted;
+                entry.IV = iv;
+                entry.Salt = salt;
+            }
             await _safeDbReadWriteService.WriteGroupsAsync(user, newpassword, groups);
             await _userService.LoginSuccessAsync(user);
             _authorizationSession.Validate(newpassword);
