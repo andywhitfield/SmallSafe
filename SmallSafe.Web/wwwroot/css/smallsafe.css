@@ -228,6 +228,10 @@ ul.ss-list-item>li>div {
     min-width: 150px;
 }
 
+div.ss-list-item-entry>div>form {
+    display: inline;
+}
+
 li.ss-list-item {
     border: 2px solid #9eaabc;
 }
@@ -264,6 +268,10 @@ ul.ss-list li.placeholder:before {
 
 .ss-list-item-drag-handle {
     cursor: move;
+}
+
+textarea#newencryptedvalue {
+    display: none;
 }
 
 @media (max-width: 600px) {

@@ -27,13 +27,18 @@
                         </div>
                         <div>
                             <div class="ss-hidden-value">***</div>
-                            <div class="ss-visible-value"><textarea></textarea></div>
+                            <div class="ss-visible-value ss-value"><textarea></textarea></div>
                         </div>
                         <div>
-                            <button class="ss-hidden-value" title="Show encrypted value"><img src="/images/add.png" height="15" width="15" /> Show</button>
-                            <button class="ss-visible-value" title="Hide encrypted value"><img src="/images/del.png" height="15" width="15" /> Hide</button>
-                            <button class="ss-hidden-value" title="Decrypt and copy the value to the clipboad"><img src="/images/copy.png" height="15" width="15" /> Decrypt</button>
-                            <button class="ss-visible-value" title="Copy encrypted value to the clipboard"><img src="/images/copy.png" height="15" width="15" /> Copy</button>
+                            <button class="ss-hidden-value ss-show-value" title="Show encrypted value"><img src="/images/add.png" height="15" width="15" /> Show</button>
+                            <button class="ss-visible-value ss-hide-value" title="Hide encrypted value"><img src="/images/del.png" height="15" width="15" /> Hide</button>
+                            <button class="ss-hidden-value ss-decrypt-value" title="Decrypt and copy the value to the clipboad"><img src="/images/copy.png" height="15" width="15" /> Decrypt</button>
+                            <button class="ss-visible-value ss-copy-value" title="Copy encrypted value to the clipboard"><img src="/images/copy.png" height="15" width="15" /> Copy</button>
+                            <form data-confirm="Are you sure you want to update this entry?" method="post" action="/group/@Model.Group.Id/edit/@safeEntry.Id">
+                            @Html.AntiForgeryToken()
+                            <textarea id="newencryptedvalue" name="newencryptedvalue"></textarea>
+                            <button class="ss-visible-value ss-save-value" title="Save the update encrypted value"><img src="/images/tick.png" height="15" width="15" /> Save</button>
+                            </form>
                         </div>
                     </div>
                     <div>

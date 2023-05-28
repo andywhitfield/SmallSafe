@@ -75,6 +75,33 @@ public class GroupEntryController : Controller
         return Redirect($"~/group/{groupId}");
     }
 
+    [HttpPost("~/group/{groupId:guid}/edit/{entryId:guid}"), ValidateAntiForgeryToken]
+    public async Task<IActionResult> UpdateEntry(Guid groupId, Guid entryId, [FromForm] string? newencryptedvalue)
+    {
+        _logger.LogDebug($"Updating safe entry {entryId} from group {groupId}");
+        if (string.IsNullOrEmpty(newencryptedvalue))
+        {
+            _logger.LogDebug("No value entered, redirecting to group page");
+            return Redirect($"~/group/{groupId}");
+        }
+
+        var user = await _userService.GetUserAsync(User);
+        var groups = await _safeDbReadWriteService.ReadGroupsAsync(user, _authorizationSession.MasterPassword);
+        var entry = groups.FirstOrDefault(g => g.Id == groupId)?.Entries?.FirstOrDefault(e => e.Id == entryId);
+        if (entry != null)
+        {
+            var (encrypted, iv, salt) = _encryptDecrypt.Encrypt(_authorizationSession.MasterPassword, newencryptedvalue);
+            entry.EncryptedValue = encrypted;
+            entry.IV = iv;
+            entry.Salt = salt;
+
+            await _safeDbReadWriteService.WriteGroupsAsync(user, _authorizationSession.MasterPassword, groups);
+            _logger.LogDebug("Successfully saved groups");
+        }
+
+        return Redirect($"~/group/{groupId}");
+    }
+
     [HttpPost("~/group/{groupId:guid}/sort"), ValidateAntiForgeryToken]
     public async Task<IActionResult> SortEntries(Guid groupId)
     {

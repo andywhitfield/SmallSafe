@@ -77,7 +77,7 @@ function ssInitialise() {
     const params = new Proxy(new URLSearchParams(window.location.search), {
         get: (searchParams, prop) => searchParams.get(prop),
     });
-    let filterValue = params.filter.trim();
+    let filterValue = params.filter ? params.filter.trim() : '';
     if (filterValue.trim() !== '')
         $('input[name="filter"]').val(filterValue).trigger('keyup');
 
@@ -119,7 +119,7 @@ function ssInitialise() {
 
 function ssInitialiseSafeEntry() {
     $('.ss-visible-value').hide();
-    $('button.ss-hidden-value:first-child').click(function() {
+    $('button.ss-show-value').click(function() {
         let $entryGroup = $(this).parentsUntil('li.ss-list-item').parent();
         let $groupId = $entryGroup.attr('data-group');
         let $entryId = $entryGroup.attr('data-entry');
@@ -132,7 +132,7 @@ function ssInitialiseSafeEntry() {
             })
             .fail(function() { window.location.reload(); });
     });
-    $('button.ss-hidden-value:nth-last-child(2)').click(function() {
+    $('button.ss-decrypt-value').click(function() {
         let $entryGroup = $(this).parentsUntil('li.ss-list-item').parent();
         let $groupId = $entryGroup.attr('data-group');
         let $entryId = $entryGroup.attr('data-entry');
@@ -140,23 +140,27 @@ function ssInitialiseSafeEntry() {
         $.getJSON('/api/group/' + $groupId + '/entry/' + $entryId)
             .done(function(data) {
                 $('textarea', $entryGroup).val(data.value);
-                $('button.ss-hidden-value:nth-last-child(2)', $entryGroup).hide();
-                $('button.ss-visible-value:last-child', $entryGroup).show();
+                $('button.ss-decrypt-value', $entryGroup).hide();
+                $('button.ss-copy-value', $entryGroup).show();
             })
             .fail(function() { window.location.reload(); });
     });
-    $('button.ss-visible-value:nth-child(2)').click(function() {
+    $('button.ss-hide-value').click(function() {
         let $entryGroup = $(this).parentsUntil('li.ss-list-item');
         $('.ss-visible-value', $entryGroup).hide();
         $('textarea', $entryGroup).val('');
         $('.ss-hidden-value', $entryGroup).show();
     });
-    $('button.ss-visible-value:last-child').click(function() {
+    $('button.ss-copy-value').click(function() {
         let $entryGroup = $(this).parentsUntil('li.ss-list-item');
         ssCopyToClipboard($('textarea', $entryGroup).val());
         $('.ss-visible-value', $entryGroup).hide();
         $('textarea', $entryGroup).val('');
         $('.ss-hidden-value', $entryGroup).show();
+    });
+    $('button.ss-save-value').click(function() {
+        let $entryGroup = $(this).parentsUntil('li.ss-list-item');
+        $('textarea[name="newencryptedvalue"]').val($('textarea', $entryGroup).val());
     });
 }
 
