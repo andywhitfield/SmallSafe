@@ -60,18 +60,14 @@ public class Startup
                 options.AuthenticationMethod = OpenIdConnectRedirectBehavior.RedirectGet;
                 options.Authority = "https://smallauth.nosuchblogger.com/";
                 options.Scope.Add("roles");
-
-                options.SecurityTokenValidator = new JwtSecurityTokenHandler
-                {
-                    InboundClaimTypeMap = new Dictionary<string, string>()
-                };
-
+                options.TokenHandler = new JwtSecurityTokenHandler { InboundClaimTypeMap = new Dictionary<string, string>() };
+                options.UseSecurityTokenValidator = true;
                 options.TokenValidationParameters.NameClaimType = "name";
                 options.TokenValidationParameters.RoleClaimType = "role";
 
                 options.AccessDeniedPath = "/";
             });
-        
+
         services.AddAuthorization(options => options.AddPolicy(TwoFactorRequirement.PolicyName, policy => policy.AddRequirements(new TwoFactorRequirement())));
         services.AddHttpContextAccessor();
         services

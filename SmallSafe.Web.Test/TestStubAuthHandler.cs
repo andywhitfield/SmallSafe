@@ -6,17 +6,12 @@ using Microsoft.Extensions.Options;
 
 namespace SmallSafe.Web.Test;
 
-public class TestStubAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions>
+public class TestStubAuthHandler(IOptionsMonitor<AuthenticationSchemeOptions> options,
+    ILoggerFactory logger, UrlEncoder encoder) : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
 {
-    public TestStubAuthHandler(IOptionsMonitor<AuthenticationSchemeOptions> options,
-        ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock)
-    : base(options, logger, encoder, clock)
-    {
-    }
-
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
-        var claims = new Claim[] { new(ClaimTypes.Name, "Test user"), new("sub", "http://test/user/1") };
+        Claim[] claims = [new(ClaimTypes.Name, "Test user"), new("name", "http://test/user/1")];
         ClaimsIdentity identity = new(claims, "Test");
         ClaimsPrincipal principal = new(identity);
         AuthenticationTicket ticket = new(principal, "Test");
