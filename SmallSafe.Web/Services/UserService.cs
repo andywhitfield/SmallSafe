@@ -14,23 +14,37 @@ public class UserService(ILogger<UserService> logger, IOptionsSnapshot<DropboxCo
 {
     public async Task<bool> IsNewUserAsync(ClaimsPrincipal user)
     {
-        var authenticationUri = GetIdentifierFromPrincipal(user);
-        var userAccount = await dbContext.UserAccounts!.FirstOrDefaultAsync(ua => ua.AuthenticationUri == authenticationUri && ua.DeletedDateTime == null);
+        var email = GetEmailFromPrincipal(user);
+        var userAccount = await dbContext.UserAccounts!.FirstOrDefaultAsync(ua => ua.Email == email && ua.DeletedDateTime == null);
         return userAccount == null || !userAccount.IsAccountConfigured;
     }
 
     public async Task<UserAccount> GetUserAsync(ClaimsPrincipal user)
     {
-        var authenticationUri = GetIdentifierFromPrincipal(user) ?? throw new ArgumentException("Could not get identifier from user principal", nameof(user));
-        var userAccount = await dbContext.UserAccounts!.FirstOrDefaultAsync(ua => ua.AuthenticationUri == authenticationUri && ua.DeletedDateTime == null);
-        return userAccount ?? throw new ArgumentException($"No active user account found for authentication id {authenticationUri}", nameof(user));
+        var email = GetEmailFromPrincipal(user) ?? throw new ArgumentException("Could not get email from user principal", nameof(user));
+        return await GetUserByEmailAsync(email) ?? throw new ArgumentException($"No active user account found for authentication id {email}", nameof(user));
     }
 
-    public async Task<UserAccount> GetOrCreateUserAsync(ClaimsPrincipal user)
+    public Task<UserAccount?> GetUserByEmailAsync(string email)
+        => dbContext.UserAccounts!.FirstOrDefaultAsync(a => a.DeletedDateTime == null && a.Email == email);
+
+    public async Task<UserAccount> CreateUserAsync(string email, byte[] credentialId, byte[] publicKey, byte[] userHandle)
     {
-        var authenticationUri = GetIdentifierFromPrincipal(user) ?? throw new ArgumentException("Could not get identifier from user principal", nameof(user));
-        var userAccount = await dbContext.UserAccounts!.FirstOrDefaultAsync(ua => ua.AuthenticationUri == authenticationUri && ua.DeletedDateTime == null);
-        return userAccount ?? await CreateUserAsync(authenticationUri);
+        var newUser = dbContext.UserAccounts!.Add(new() 
+        {
+            CreatedDateTime = DateTime.UtcNow,
+            Email = email,
+            TwoFactorKey = Guid.NewGuid().ToString()
+        });
+        dbContext.UserAccountCredentials!.Add(new()
+        {
+            UserAccount = newUser.Entity,
+            CredentialId = credentialId,
+            PublicKey = publicKey,
+            UserHandle = userHandle
+        });
+        await dbContext.SaveChangesAsync();
+        return newUser.Entity;
     }
 
     public async Task UpdateUserDbAsync(UserAccount user, string safeDb)
@@ -65,19 +79,19 @@ public class UserService(ILogger<UserService> logger, IOptionsSnapshot<DropboxCo
         return dbContext.SaveChangesAsync();
     }
 
-    private async Task<UserAccount> CreateUserAsync(string authenticationUri)
+    public IAsyncEnumerable<UserAccountCredential> GetUserCredentialsAsync(UserAccount user)
+        => dbContext.UserAccountCredentials!.Where(uac => uac.DeletedDateTime == null && uac.UserAccountId == user.UserAccountId).AsAsyncEnumerable();
+
+    public Task<UserAccountCredential?> GetUserCredentialByUserHandleAsync(byte[] userHandle)
+        => dbContext.UserAccountCredentials!.FirstOrDefaultAsync(uac => uac.DeletedDateTime == null && uac.UserHandle.SequenceEqual(userHandle));
+
+    public Task SetSignatureCountAsync(UserAccountCredential userAccountCredential, uint signatureCount)
     {
-        var newUser = dbContext.UserAccounts!.Add(new() 
-        {
-            CreatedDateTime = DateTime.UtcNow,
-            AuthenticationUri = authenticationUri,
-            TwoFactorKey = Guid.NewGuid().ToString()
-        });
-        await dbContext.SaveChangesAsync();
-        return newUser.Entity;
+        userAccountCredential.SignatureCount = signatureCount;
+        return dbContext.SaveChangesAsync();
     }
 
-    private static string? GetIdentifierFromPrincipal(ClaimsPrincipal user) => user?.FindFirstValue("name");
+    private static string? GetEmailFromPrincipal(ClaimsPrincipal user) => user?.FindFirstValue(ClaimTypes.Name);
 
     private async Task CopyToDropboxAsync(UserAccount user)
     {

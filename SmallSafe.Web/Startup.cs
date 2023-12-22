@@ -1,10 +1,7 @@
-﻿using System.IdentityModel.Tokens.Jwt;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+﻿using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using SmallSafe.Secure;
 using SmallSafe.Secure.Dictionary;
 using SmallSafe.Secure.Services;
@@ -29,12 +26,12 @@ public class Startup
         Environment = env;
     }
 
-    public IConfigurationRoot Configuration { get; }
+    public IConfiguration Configuration { get; }
     public IWebHostEnvironment Environment { get; }
 
     public void ConfigureServices(IServiceCollection services)
     {
-        services.AddSingleton<IConfiguration>(Configuration);
+        services.AddSingleton(Configuration);
 
         services
             .AddAuthentication(o => o.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme)
@@ -45,30 +42,20 @@ public class Startup
                 o.AccessDeniedPath = "/twofactor";
                 o.Cookie.HttpOnly = true;
                 o.Cookie.MaxAge = _loginSessionTimeout;
+                o.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+                o.Cookie.IsEssential = true;
                 o.ExpireTimeSpan = _loginSessionTimeout;
                 o.SlidingExpiration = true;
-            })
-            .AddOpenIdConnect(options =>
-            {
-                var openIdOptions = Configuration.GetSection("SmallSafeOpenId");
-                options.ClientId = openIdOptions.GetValue("ClientId", "");
-                options.ClientSecret = openIdOptions.GetValue("ClientSecret", "");
-
-                options.GetClaimsFromUserInfoEndpoint = true;
-                options.SaveTokens = true;
-                options.ResponseType = OpenIdConnectResponseType.Code;
-                options.AuthenticationMethod = OpenIdConnectRedirectBehavior.RedirectGet;
-                options.Authority = "https://smallauth.nosuchblogger.com/";
-                options.Scope.Add("roles");
-                options.TokenHandler = new JwtSecurityTokenHandler { InboundClaimTypeMap = new Dictionary<string, string>() };
-                options.UseSecurityTokenValidator = true;
-                options.TokenValidationParameters.NameClaimType = "name";
-                options.TokenValidationParameters.RoleClaimType = "role";
-
-                options.AccessDeniedPath = "/";
             });
 
-        services.AddAuthorization(options => options.AddPolicy(TwoFactorRequirement.PolicyName, policy => policy.AddRequirements(new TwoFactorRequirement())));
+        services
+            .AddAuthorization(options => options.AddPolicy(TwoFactorRequirement.PolicyName, policy => policy.AddRequirements(new TwoFactorRequirement())))
+            .AddFido2(options =>
+            {
+                options.ServerName = "Small:Safe";
+                options.ServerDomain = Configuration.GetValue<string>("FidoDomain");
+                options.Origins = [Configuration.GetValue<string>("FidoOrigins")];
+            });
         services.AddHttpContextAccessor();
         services
             .AddScoped<IAuthorizationHandler, TwoFactorHandler>()

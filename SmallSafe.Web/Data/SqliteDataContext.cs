@@ -3,11 +3,10 @@ using SmallSafe.Web.Data.Models;
 
 namespace SmallSafe.Web.Data;
 
-public class SqliteDataContext : DbContext, ISqliteDataContext
+public class SqliteDataContext(DbContextOptions<SqliteDataContext> options) : DbContext(options), ISqliteDataContext
 {
-    public SqliteDataContext(DbContextOptions<SqliteDataContext> options) : base(options) { }
-
     public DbSet<UserAccount>? UserAccounts { get; set; }
+    public DbSet<UserAccountCredential>? UserAccountCredentials { get; set; }
 
     public void Migrate() => Database.Migrate();
 }

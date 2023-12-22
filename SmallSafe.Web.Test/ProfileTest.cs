@@ -22,7 +22,7 @@ public class ProfileTest
         using var serviceScope = _factory.Services.CreateScope();
         using var context = serviceScope.ServiceProvider.GetRequiredService<SqliteDataContext>();
         context.Migrate();
-        var user = await context.UserAccounts!.AddAsync(new() { AuthenticationUri = "http://test/user/1", TwoFactorKey = "test-key" });
+        var user = await context.UserAccounts!.AddAsync(new() { Email = "test-user-1", TwoFactorKey = "test-key" });
         await context.SaveChangesAsync();
         
         var (encrypted, iv, salt) = serviceScope.ServiceProvider.GetRequiredService<IEncryptDecrypt>().Encrypt("test-pw", "entry encrypted value");

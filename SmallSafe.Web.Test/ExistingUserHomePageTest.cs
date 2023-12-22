@@ -19,7 +19,7 @@ public class ExistingUserHomePageTest
         using var serviceScope = _factory.Services.CreateScope();
         using var context = serviceScope.ServiceProvider.GetRequiredService<SqliteDataContext>();
         context.Migrate();
-        var user = await context.UserAccounts!.AddAsync(new() { AuthenticationUri = "http://test/user/1", TwoFactorKey = "test-key" });
+        var user = await context.UserAccounts!.AddAsync(new() { Email = "test-user-1", TwoFactorKey = "test-key" });
         await context.SaveChangesAsync();
         await serviceScope.ServiceProvider.GetRequiredService<ISafeDbReadWriteService>().WriteGroupsAsync(user.Entity, "test-pw", Enumerable.Empty<SafeGroup>());
     }

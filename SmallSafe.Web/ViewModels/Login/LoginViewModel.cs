@@ -1,6 +1,6 @@
 namespace SmallSafe.Web.ViewModels.Login;
-public class LoginViewModel : BaseViewModel
+
+public class LoginViewModel(HttpContext context, string? returnUrl) : BaseViewModel(context)
 {
-    public string ReturnUrl { get; }
-    public LoginViewModel(HttpContext context, string returnUrl) : base(context) => ReturnUrl = returnUrl;
+    public string? ReturnUrl { get; } = returnUrl;
 }

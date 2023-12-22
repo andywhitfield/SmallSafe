@@ -8,7 +8,7 @@ public class TwoFactor : ITwoFactor
     public (string QrCodeImageUrl, string ManualSetupKey) GenerateSetupCodeForUser(UserAccount user)
     {
         TwoFactorAuthenticator tfa = new();
-        var setupInfo = tfa.GenerateSetupCode("smallsafe.nosuchblogger.com", user.AuthenticationUri, user.TwoFactorKey, false, 3);
+        var setupInfo = tfa.GenerateSetupCode("smallsafe.nosuchblogger.com", user.Email, user.TwoFactorKey, false, 3);
         return (setupInfo.QrCodeSetupImageUrl, setupInfo.ManualEntryKey);
     }
 

@@ -11,7 +11,7 @@ public class TestStubAuthHandler(IOptionsMonitor<AuthenticationSchemeOptions> op
 {
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
-        Claim[] claims = [new(ClaimTypes.Name, "Test user"), new("name", "http://test/user/1")];
+        Claim[] claims = [new(ClaimTypes.GivenName, "Test user"), new(ClaimTypes.Name, "test-user-1")];
         ClaimsIdentity identity = new(claims, "Test");
         ClaimsPrincipal principal = new(identity);
         AuthenticationTicket ticket = new(principal, "Test");
