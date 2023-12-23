@@ -1,7 +1,11 @@
 ﻿@model SmallSafe.Web.ViewModels.Login.LoginVerifyViewModel
 
 <article>
+@if (Model.IsReturningUser) {
 <h1>Login</h1>
+} else {
+<h1>Register</h1>
+}
 <form action="/signin/verify" method="post" id="signinVerifyForm">
     @if (Model.IsReturningUser) {
     <p>Welcome back, please login</p>
