@@ -28,7 +28,7 @@
         </nav>
         <nav class="navbar-main">
             <div class="navbar-nav">
-                @if (Model.IsLoggedIn) {                    
+                @if (Model.IsLoggedIn) {
                     <span class="narrow-hide">
                     <form method="post" action="/find">
                     @Html.AntiForgeryToken()
@@ -119,6 +119,9 @@
 
     <script type="text/javascript">
         $(function() { ssInitialise() })
+        @if (Model.IsLoggedIn) {
+        <text>setTimeout("window.location.reload(true);", 1200000);</text>
+        }
     </script>
     @RenderSection("Scripts", required: false)
 </body>
