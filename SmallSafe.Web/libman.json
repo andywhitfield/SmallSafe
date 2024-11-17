@@ -3,7 +3,7 @@
   "defaultProvider": "cdnjs",
   "libraries": [
     {
-      "library": "jquery@3.6.4",
+      "library": "jquery@3.7.1",
       "destination": "wwwroot/lib/jquery",
       "files": [
         "jquery.min.js"
@@ -14,6 +14,13 @@
       "destination": "wwwroot/lib/jquery-sortable",
       "files": [
         "jquery-sortable-min.js"
+      ]
+    },
+    {
+      "library": "jquery.blockUI@2.70",
+      "destination": "wwwroot/lib/jquery-blockui",
+      "files": [
+        "jquery.blockUI.min.js"
       ]
     }
   ]
