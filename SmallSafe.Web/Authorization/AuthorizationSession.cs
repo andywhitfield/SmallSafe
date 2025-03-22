@@ -11,7 +11,7 @@ using SmallSafe.Web.Services;
 namespace SmallSafe.Web.Authorization;
 
 public class AuthorizationSession(ILogger<AuthorizationSession> logger,
-    IUserService userService, IFido2 fido2, IConfiguration configuration,
+    IUserService userService, IFido2 fido2,
     IHttpContextAccessor httpContextAccessor)
     : IAuthorizationSession
 {
@@ -51,13 +51,7 @@ public class AuthorizationSession(ILogger<AuthorizationSession> logger,
                     .GetUserCredentialsAsync(user)
                     .Select(uac => new PublicKeyCredentialDescriptor(uac.CredentialId))
                     .ToArrayAsync(cancellationToken: cancellationToken),
-                UserVerificationRequirement.Discouraged,
-                new AuthenticationExtensionsClientInputs()
-                {
-                    Extensions = true,
-                    UserVerificationMethod = true,
-                    AppID = configuration.GetValue<string>("FidoOrigins")
-                }
+                UserVerificationRequirement.Discouraged
             ).ToJson();
         }
         else
@@ -67,13 +61,7 @@ public class AuthorizationSession(ILogger<AuthorizationSession> logger,
                 new Fido2User() { Id = Encoding.UTF8.GetBytes(email), Name = email, DisplayName = email },
                 [],
                 AuthenticatorSelection.Default,
-                AttestationConveyancePreference.None,
-                new()
-                {
-                    Extensions = true,
-                    UserVerificationMethod = true,
-                    AppID = configuration.GetValue<string>("FidoOrigins")
-                }
+                AttestationConveyancePreference.None
             ).ToJson();
         }
 
