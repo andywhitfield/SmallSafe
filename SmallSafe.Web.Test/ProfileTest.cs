@@ -25,7 +25,7 @@ public class ProfileTest
         var user = await context.UserAccounts!.AddAsync(new() { Email = "test-user-1", TwoFactorKey = "test-key" });
         await context.SaveChangesAsync();
         
-        var (encrypted, iv, salt) = serviceScope.ServiceProvider.GetRequiredService<IEncryptDecrypt>().Encrypt("test-pw", "entry encrypted value");
+        var (encrypted, iv, salt) = await serviceScope.ServiceProvider.GetRequiredService<IEncryptDecrypt>().EncryptAsync("test-pw", "entry encrypted value");
         await serviceScope.ServiceProvider.GetRequiredService<ISafeDbReadWriteService>().WriteGroupsAsync(user.Entity, "test-pw", new SafeGroup[] { new() { Id = _groupId, Name = "test group 1", Entries = new List<SafeEntry> { new() { Id = _entryId, Name = "test entry", EncryptedValue = encrypted, IV = iv, Salt = salt } } } });
     }
 

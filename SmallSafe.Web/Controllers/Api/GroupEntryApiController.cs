@@ -56,7 +56,7 @@ public class GroupEntryApiController : ControllerBase
             return Problem();
         }
 
-        return new DecryptResult(_encryptDecrypt.Decrypt(_authorizationSession.MasterPassword, entry.IV, entry.Salt, entry.EncryptedValue));
+        return new DecryptResult(await _encryptDecrypt.DecryptAsync(_authorizationSession.MasterPassword, entry.IV, entry.Salt, entry.EncryptedValue));
     }
 
     [HttpPost("~/api/group/{groupId:guid}/entry/{entryId:guid}/move")]

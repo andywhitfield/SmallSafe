@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authentication.Cookies;
+﻿using System.Collections.Immutable;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
@@ -54,7 +55,7 @@ public class Startup
             {
                 options.ServerName = "Small:Safe";
                 options.ServerDomain = Configuration.GetValue<string>("FidoDomain");
-                options.Origins = [Configuration.GetValue<string>("FidoOrigins")];
+                options.Origins = ImmutableHashSet.Create(Configuration.GetValue<string>("FidoOrigins"));
             });
         services.AddHttpContextAccessor();
         services

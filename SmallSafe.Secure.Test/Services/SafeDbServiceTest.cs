@@ -1,7 +1,8 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.Extensions.Logging;
+using Moq;
 using SmallSafe.Secure.Model;
 using SmallSafe.Secure.Services;
 
@@ -15,14 +16,13 @@ public class SafeDbServiceTest
     {
         using MemoryStream mem = new();
 
-        SafeDbService safeDbService = new(new EncryptDecrypt());
+        SafeDbService safeDbService = new(Mock.Of<ILogger<SafeDbService>>(), new EncryptDecrypt());
         await safeDbService.WriteAsync(
             "master password",
-            new SafeGroup[]
-            {
+            [
                 new() { Name = "test group 1", Entries = new List<SafeEntry>{ new() { Name = "grp 1 entry 1", EncryptedValue = "a" }, new() { Name = "grp 1 entry 2", EncryptedValue = "b" } } },
                 new() { Name = "test group 2", Entries = new List<SafeEntry>{ new() { Name = "grp 2 entry 1", EncryptedValue = "c" } } }
-            },
+            ],
             mem);
         await mem.FlushAsync();
 
@@ -66,56 +66,55 @@ public class SafeDbServiceTest
     {
         using MemoryStream mem = new();
 
-        SafeDbService safeDbService = new(new EncryptDecrypt());
+        SafeDbService safeDbService = new(Mock.Of<ILogger<SafeDbService>>(), new EncryptDecrypt());
         await safeDbService.WriteAsync(
             "master password",
-            new SafeGroup[]
-            {
+            [
                 new() { Name = "test group 1", Entries = new List<SafeEntry>{ new() { Name = "grp 1 entry 1", EncryptedValue = "a" }, new() { Name = "grp 1 entry 2", EncryptedValue = "b" } } },
                 new() { Name = "test group 2", Entries = new List<SafeEntry>{ new() { Name = "grp 2 entry 1", EncryptedValue = "c" } } }
-            },
+            ],
             mem);
         await mem.FlushAsync();
 
         Assert.AreNotEqual(0, mem.Length);
 
         mem.Position = 0;
-        await Assert.ThrowsExceptionAsync<CryptographicException>(() => safeDbService.ReadAsync("wrong master password", mem));
+        await Assert.ThrowsExactlyAsync<CryptographicException>(async () => await safeDbService.ReadAsync("wrong master password", mem));
 
         mem.Position = 0;
-        await Assert.ThrowsExceptionAsync<CryptographicException>(() => safeDbService.ReadAsync("", mem));
+        await Assert.ThrowsExactlyAsync<CryptographicException>(async () => await safeDbService.ReadAsync("", mem));
 
         mem.Position = 0;
         #pragma warning disable CS8625
-        await Assert.ThrowsExceptionAsync<ArgumentNullException>(() => safeDbService.ReadAsync(null, mem));
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(async () => await safeDbService.ReadAsync(null, mem));
         #pragma warning restore CS8625
     }
 
     [TestMethod]
     public async Task ThrowsWhenAttemptingToReadAnInvalidSafe()
     {
-        SafeDbService safeDbService = new(new EncryptDecrypt());
+        SafeDbService safeDbService = new(Mock.Of<ILogger<SafeDbService>>(), new EncryptDecrypt());
         // try a null stream
         #pragma warning disable CS8625
-        await Assert.ThrowsExceptionAsync<ArgumentNullException>(() => safeDbService.ReadAsync("master password", null));
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(async () => await safeDbService.ReadAsync("master password", null));
         #pragma warning restore CS8625
 
         using MemoryStream mem = new();
 
         // empty string
-        await Assert.ThrowsExceptionAsync<JsonException>(() => safeDbService.ReadAsync("master password", mem));
+        await Assert.ThrowsExactlyAsync<JsonException>(async () => await safeDbService.ReadAsync("master password", mem));
 
         var invalidSafeFile = Encoding.UTF8.GetBytes("{\"IsAValidFile\": false}");
         await mem.WriteAsync(invalidSafeFile, 0, invalidSafeFile.Length);
         mem.Position = 0;
 
-        await Assert.ThrowsExceptionAsync<ArgumentException>(() => safeDbService.ReadAsync("master password", mem));
+        await Assert.ThrowsExactlyAsync<ArgumentException>(async () => await safeDbService.ReadAsync("master password", mem));
 
         // invalid json
         mem.SetLength(0);
         var invalidJson = Encoding.UTF8.GetBytes("{ not json ");
         await mem.WriteAsync(invalidJson, 0, invalidJson.Length);
 
-        await Assert.ThrowsExceptionAsync<JsonException>(() => safeDbService.ReadAsync("master password", mem));
+        await Assert.ThrowsExactlyAsync<JsonException>(async () => await safeDbService.ReadAsync("master password", mem));
     }
 }

@@ -67,8 +67,8 @@ public class ProfileController : Controller
                     continue;
                 }
 
-                var value = _encryptDecrypt.Decrypt(_authorizationSession.MasterPassword, entry.IV, entry.Salt, entry.EncryptedValue);
-                var (encrypted, iv, salt) = _encryptDecrypt.Encrypt(newpassword, value);
+                var value = await _encryptDecrypt.DecryptAsync(_authorizationSession.MasterPassword, entry.IV, entry.Salt, entry.EncryptedValue);
+                var (encrypted, iv, salt) = await _encryptDecrypt.EncryptAsync(newpassword, value);
                 entry.EncryptedValue = encrypted;
                 entry.IV = iv;
                 entry.Salt = salt;

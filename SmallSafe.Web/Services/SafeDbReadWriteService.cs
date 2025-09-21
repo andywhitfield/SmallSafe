@@ -5,19 +5,12 @@ using SmallSafe.Web.Data.Models;
 
 namespace SmallSafe.Web.Services;
 
-public class SafeDbReadWriteService : ISafeDbReadWriteService
+public class SafeDbReadWriteService(
+    ILogger<SafeDbReadWriteService> logger,
+    IUserService userService,
+    ISafeDbService safeDbService)
+    : ISafeDbReadWriteService
 {
-    private readonly ILogger<SafeDbReadWriteService> _logger;
-    private readonly IUserService _userService;
-    private readonly ISafeDbService _safeDbService;
-
-    public SafeDbReadWriteService(ILogger<SafeDbReadWriteService> logger, IUserService userService, ISafeDbService safeDbService)
-    {
-        _logger = logger;
-        _userService = userService;
-        _safeDbService = safeDbService;
-    }
-
     public async Task<IEnumerable<SafeGroup>?> TryReadGroupsAsync(UserAccount user, string masterpassword)
     {
         try
@@ -26,7 +19,7 @@ public class SafeDbReadWriteService : ISafeDbReadWriteService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, $"Could not read safedb for user {user.UserAccountId}");
+            logger.LogWarning(ex, "Could not read safedb for user {UserAccountId}", user.UserAccountId);
             return null;
         }
     }
@@ -35,18 +28,23 @@ public class SafeDbReadWriteService : ISafeDbReadWriteService
     {
         if (user.SafeDb == null)
         {
-            _logger.LogWarning($"User {user.UserAccountId} has no safedb set");
+            logger.LogWarning("User {UserAccountId} has no safedb set", user.UserAccountId);
             throw new InvalidOperationException("User has no safe db");
         }
 
-        using MemoryStream stream = new(Encoding.UTF8.GetBytes(user.SafeDb));
-        return await _safeDbService.ReadAsync(masterpassword, stream);
+        await using MemoryStream stream = new(Encoding.UTF8.GetBytes(user.SafeDb));
+        return await safeDbService.ReadAsync(masterpassword, stream);
     }
 
     public async Task WriteGroupsAsync(UserAccount user, string masterpassword, IEnumerable<SafeGroup> groups)
     {
-        using MemoryStream stream = new();
-        await _safeDbService.WriteAsync(masterpassword, groups, stream);
-        await _userService.UpdateUserDbAsync(user, Encoding.UTF8.GetString(stream.ToArray()));
+        await using MemoryStream stream = new();
+        logger.LogDebug("Writing new password db");
+        await safeDbService.WriteAsync(masterpassword, groups, stream);
+
+        logger.LogDebug("Password db updated, saving to db...");
+        await userService.UpdateUserDbAsync(user, Encoding.UTF8.GetString(stream.ToArray()));
+
+        logger.LogDebug("Groups updated");
     }
 }

@@ -49,7 +49,7 @@ public class GroupEntryController : Controller
             return Redirect("~/");
         }
 
-        var (encrypted, iv, salt) = _encryptDecrypt.Encrypt(_authorizationSession.MasterPassword, encryptedvalue);
+        var (encrypted, iv, salt) = await _encryptDecrypt.EncryptAsync(_authorizationSession.MasterPassword, encryptedvalue);
         group.Entries ??= new();
         group.Entries.Add(new() { Name = name, EncryptedValue = encrypted, IV = iv, Salt = salt });
         await _safeDbReadWriteService.WriteGroupsAsync(user, _authorizationSession.MasterPassword, groups);
@@ -90,7 +90,7 @@ public class GroupEntryController : Controller
         var entry = groups.FirstOrDefault(g => g.Id == groupId)?.Entries?.FirstOrDefault(e => e.Id == entryId);
         if (entry != null)
         {
-            var (encrypted, iv, salt) = _encryptDecrypt.Encrypt(_authorizationSession.MasterPassword, newencryptedvalue);
+            var (encrypted, iv, salt) = await _encryptDecrypt.EncryptAsync(_authorizationSession.MasterPassword, newencryptedvalue);
             entry.EncryptedValue = encrypted;
             entry.IV = iv;
             entry.Salt = salt;

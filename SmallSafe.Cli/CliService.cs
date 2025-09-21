@@ -252,7 +252,7 @@ public class CliService
 
                     _logger.LogInformation("Enter the value to be encrypted for the new entry:");
                     var newValue = ReadConsolePassword();
-                    var (encryptedValue, iv, salt) = _encryptDecrypt.Encrypt(masterPassword, newValue);
+                    var (encryptedValue, iv, salt) = await _encryptDecrypt.EncryptAsync(masterPassword, newValue);
 
                     safeGroup.Entries ??= new List<SafeEntry>();
                     safeGroup.Entries.Add(new() { Name = newEntryName, EncryptedValue = encryptedValue, IV = iv, Salt = salt });
@@ -304,7 +304,7 @@ public class CliService
 
                     _logger.LogInformation("Encrypted value:");
                     _logger.LogInformation("---");
-                    _logger.LogInformation(_encryptDecrypt.Decrypt(masterPassword, safeEntry.IV, safeEntry.Salt, safeEntry.EncryptedValue));
+                    _logger.LogInformation(await _encryptDecrypt.DecryptAsync(masterPassword, safeEntry.IV, safeEntry.Salt, safeEntry.EncryptedValue));
                     _logger.LogInformation("---");
                     _logger.LogInformation("");
                     break;
@@ -314,7 +314,7 @@ public class CliService
 
                     _logger.LogInformation("Enter the new value to be encrypted for the entry:");
                     var entryNewValue = ReadConsolePassword();
-                    var (encryptedValue, iv, salt) = _encryptDecrypt.Encrypt(masterPassword, entryNewValue);
+                    var (encryptedValue, iv, salt) = await _encryptDecrypt.EncryptAsync(masterPassword, entryNewValue);
 
                     safeEntry.Name = entryNewName;
                     safeEntry.EncryptedValue = encryptedValue;
