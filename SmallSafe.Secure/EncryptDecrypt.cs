@@ -13,11 +13,9 @@ public sealed class EncryptDecrypt : IDisposable, IEncryptDecrypt
 
     public async Task<(string EncryptedValueBase64Encoded, byte[] IV, byte[] Salt)> EncryptAsync(string password, string unencryptedValue)
     {
-        algorithm.GenerateIV();
-        using Rfc2898DeriveBytes passwordToBytes = new(password, algorithm.KeySize, _iterations, _hashFunction);
         var salt = GenerateRandomSalt();
-        passwordToBytes.Salt = salt;
-        algorithm.Key = passwordToBytes.GetBytes(algorithm.KeySize / 8);
+        algorithm.GenerateIV();
+        algorithm.Key = Rfc2898DeriveBytes.Pbkdf2(password, salt, _iterations, _hashFunction, algorithm.KeySize / 8);
         await using MemoryStream encryptionStreamBacking = new();
         await using (CryptoStream encrypt = new(encryptionStreamBacking, algorithm.CreateEncryptor(), CryptoStreamMode.Write))
         {
@@ -31,9 +29,7 @@ public sealed class EncryptDecrypt : IDisposable, IEncryptDecrypt
     public async Task<string> DecryptAsync(string password, byte[] iv, byte[] salt, string encryptedValueBase64Encoded)
     {
         algorithm.IV = iv;
-        using Rfc2898DeriveBytes passwordToBytes = new(password, algorithm.KeySize, _iterations, _hashFunction);
-        passwordToBytes.Salt = salt;
-        algorithm.Key = passwordToBytes.GetBytes(algorithm.KeySize / 8);
+        algorithm.Key = Rfc2898DeriveBytes.Pbkdf2(password, salt, _iterations, _hashFunction, algorithm.KeySize / 8);
         await using MemoryStream decryptionStreamBacking = new();
         await using (CryptoStream decrypt = new(decryptionStreamBacking, algorithm.CreateDecryptor(), CryptoStreamMode.Write))
         {

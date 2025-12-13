@@ -1,4 +1,3 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SmallSafe.Secure.Dictionary;
 
 namespace SmallSafe.Secure.Test;
@@ -16,12 +15,12 @@ public class RandomPasswordGeneratorTest
         randomPasswordGenerator.MaximumLength = 0;
         randomPasswordGenerator.MinimumLength = 12;
         foreach (var password in GeneratePasswords(randomPasswordGenerator))
-            Assert.IsTrue(password.Length >= 12);
+            Assert.IsGreaterThanOrEqualTo(12, password.Length);
 
 
         randomPasswordGenerator.MinimumLength = 24;
         foreach (var password in GeneratePasswords(randomPasswordGenerator))
-            Assert.IsTrue(password.Length >= 24);
+            Assert.IsGreaterThanOrEqualTo(24, password.Length);
 
 
         randomPasswordGenerator.MinimumLength = 10;

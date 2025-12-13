@@ -5,13 +5,10 @@
     <PackageReference Include="Dropbox.Api" Version="7.0.*" />
     <PackageReference Include="Fido2.AspNet" Version="4.0.*" />
     <PackageReference Include="GoogleAuthenticator" Version="3.2.*" />
-    <PackageReference Include="Microsoft.AspNetCore.DataProtection.Abstractions" Version="9.0.*" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="9.0.*" Condition="'$(Configuration)' == 'Debug'" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.*" PrivateAssets="All" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.*" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.*" />
-    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.14.*" />
-    <PackageReference Include="System.Linq.Async" Version="6.0.*" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="10.0.*" Condition="'$(Configuration)' == 'Debug'" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.*" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.*" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.15.*" />
   </ItemGroup>
 
   <ItemGroup>

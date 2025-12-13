@@ -30,15 +30,15 @@ public class SafeDbServiceTest
         // get the json string written to the stream
         var jsonOutput = Encoding.UTF8.GetString(mem.ToArray());
 
-        Assert.IsFalse(jsonOutput.Contains("test group 1"), jsonOutput);
-        Assert.IsFalse(jsonOutput.Contains("grp 1 entry 1"), jsonOutput);
-        Assert.IsFalse(jsonOutput.Contains("grp 1 entry 2"), jsonOutput);
-        Assert.IsFalse(jsonOutput.Contains("test group 2"), jsonOutput);
-        Assert.IsFalse(jsonOutput.Contains("grp 2 entry 1"), jsonOutput);
+        Assert.DoesNotContain("test group 1", jsonOutput, jsonOutput);
+        Assert.DoesNotContain("grp 1 entry 1", jsonOutput, jsonOutput);
+        Assert.DoesNotContain("grp 1 entry 2", jsonOutput, jsonOutput);
+        Assert.DoesNotContain("test group 2", jsonOutput, jsonOutput);
+        Assert.DoesNotContain("grp 2 entry 1", jsonOutput, jsonOutput);
 
-        Assert.IsTrue(jsonOutput.Contains("\"IV\""), jsonOutput);
-        Assert.IsTrue(jsonOutput.Contains("\"Salt\""), jsonOutput);
-        Assert.IsTrue(jsonOutput.Contains("\"EncryptedSafeGroups\""), jsonOutput);
+        Assert.Contains("\"IV\"", jsonOutput, jsonOutput);
+        Assert.Contains("\"Salt\"", jsonOutput, jsonOutput);
+        Assert.Contains("\"EncryptedSafeGroups\"", jsonOutput, jsonOutput);
 
         mem.Position = 0;
         // and read back again...
@@ -47,7 +47,7 @@ public class SafeDbServiceTest
         var grp = readGroups.First();
         Assert.AreEqual("test group 1", grp.Name);
         Assert.IsNotNull(grp.Entries);
-        Assert.AreEqual(2, grp.Entries.Count);
+        Assert.HasCount(2, grp.Entries);
         Assert.AreEqual("grp 1 entry 1", grp.Entries.First().Name);
         Assert.AreEqual("a", grp.Entries.First().EncryptedValue);
         Assert.AreEqual("grp 1 entry 2", grp.Entries.Last().Name);
@@ -56,7 +56,7 @@ public class SafeDbServiceTest
         grp = readGroups.Last();
         Assert.AreEqual("test group 2", grp.Name);
         Assert.IsNotNull(grp.Entries);
-        Assert.AreEqual(1, grp.Entries.Count);
+        Assert.HasCount(1, grp.Entries);
         Assert.AreEqual("grp 2 entry 1", grp.Entries.Single().Name);
         Assert.AreEqual("c", grp.Entries.Single().EncryptedValue);
     }
