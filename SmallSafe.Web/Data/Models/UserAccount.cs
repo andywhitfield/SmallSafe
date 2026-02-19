@@ -15,13 +15,14 @@ public class UserAccount
     public DateTime? LastTwoFactorFailure { get; set; }
     public int TwoFactorFailureCount { get; set; }
     public string? SafeDb { get; set; }
+    public byte[]? EncyptedSafeDb { get; set; }
     public string? DropboxAccessToken { get; set; }
     public string? DropboxRefreshToken { get; set; }
 
     public bool IsAccountConfigured =>
         DeletedDateTime == null &&
         !string.IsNullOrEmpty(TwoFactorKey) &&
-        !string.IsNullOrEmpty(SafeDb);
+        (!string.IsNullOrEmpty(SafeDb) || EncyptedSafeDb != null);
     
     public bool IsConnectedToDropbox =>
         !string.IsNullOrEmpty(DropboxAccessToken) &&
