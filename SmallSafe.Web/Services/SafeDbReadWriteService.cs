@@ -1,4 +1,3 @@
-using System.Text;
 using SmallSafe.Secure.Model;
 using SmallSafe.Secure.Services;
 using SmallSafe.Web.Data.Models;
@@ -26,13 +25,13 @@ public class SafeDbReadWriteService(
 
     public async Task<IEnumerable<SafeGroup>> ReadGroupsAsync(UserAccount user, string masterpassword)
     {
-        if (user.SafeDb == null)
+        if (user.EncyptedSafeDb == null)
         {
             logger.LogWarning("User {UserAccountId} has no safedb set", user.UserAccountId);
             throw new InvalidOperationException("User has no safe db");
         }
 
-        await using MemoryStream stream = new(Encoding.UTF8.GetBytes(user.SafeDb));
+        await using MemoryStream stream = new(user.EncyptedSafeDb);
         return await safeDbService.ReadAsync(masterpassword, stream);
     }
 
@@ -43,7 +42,7 @@ public class SafeDbReadWriteService(
         await safeDbService.WriteAsync(masterpassword, groups, stream);
 
         logger.LogDebug("Password db updated, saving to db...");
-        await userService.UpdateUserDbAsync(user, Encoding.UTF8.GetString(stream.ToArray()));
+        await userService.UpdateUserDbAsync(user, stream.ToArray());
 
         logger.LogDebug("Groups updated");
     }

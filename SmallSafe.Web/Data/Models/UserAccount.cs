@@ -22,7 +22,7 @@ public class UserAccount
     public bool IsAccountConfigured =>
         DeletedDateTime == null &&
         !string.IsNullOrEmpty(TwoFactorKey) &&
-        (!string.IsNullOrEmpty(SafeDb) || EncyptedSafeDb != null);
+        EncyptedSafeDb != null;
     
     public bool IsConnectedToDropbox =>
         !string.IsNullOrEmpty(DropboxAccessToken) &&

@@ -4,7 +4,8 @@ public class SafeEntry
 {
     public Guid Id { get; set; } = Guid.NewGuid();
     public string? Name { get; set; }
-    public string? EncryptedValue { get; set; }
-    public byte[]? IV { get; set; }
-    public byte[]? Salt { get; set; }
+    public string? EntryValue { get; set; }
+    public DateTime CreatedTimestamp { get; set; } = DateTime.UtcNow;
+    public DateTime UpdatedTimestamp { get; set; } = DateTime.UtcNow;
+    public DateTime? DeletedTimestamp { get; set; }
 }

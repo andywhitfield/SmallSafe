@@ -3,7 +3,6 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Moq;
-using SmallSafe.Secure.Model;
 using SmallSafe.Secure.Services;
 
 namespace SmallSafe.Secure.Test.Services;
@@ -20,8 +19,8 @@ public class SafeDbServiceTest
         await safeDbService.WriteAsync(
             "master password",
             [
-                new() { Name = "test group 1", Entries = new List<SafeEntry>{ new() { Name = "grp 1 entry 1", EncryptedValue = "a" }, new() { Name = "grp 1 entry 2", EncryptedValue = "b" } } },
-                new() { Name = "test group 2", Entries = new List<SafeEntry>{ new() { Name = "grp 2 entry 1", EncryptedValue = "c" } } }
+                new() { Name = "test group 1", Entries = [new() { Name = "grp 1 entry 1", EntryValue = "a" }, new() { Name = "grp 1 entry 2", EntryValue = "b" }] },
+                new() { Name = "test group 2", Entries = [new() { Name = "grp 2 entry 1", EntryValue = "c" }] }
             ],
             mem);
         await mem.FlushAsync();
@@ -49,16 +48,16 @@ public class SafeDbServiceTest
         Assert.IsNotNull(grp.Entries);
         Assert.HasCount(2, grp.Entries);
         Assert.AreEqual("grp 1 entry 1", grp.Entries.First().Name);
-        Assert.AreEqual("a", grp.Entries.First().EncryptedValue);
+        Assert.AreEqual("a", grp.Entries.First().EntryValue);
         Assert.AreEqual("grp 1 entry 2", grp.Entries.Last().Name);
-        Assert.AreEqual("b", grp.Entries.Last().EncryptedValue);
+        Assert.AreEqual("b", grp.Entries.Last().EntryValue);
         
         grp = readGroups.Last();
         Assert.AreEqual("test group 2", grp.Name);
         Assert.IsNotNull(grp.Entries);
         Assert.HasCount(1, grp.Entries);
         Assert.AreEqual("grp 2 entry 1", grp.Entries.Single().Name);
-        Assert.AreEqual("c", grp.Entries.Single().EncryptedValue);
+        Assert.AreEqual("c", grp.Entries.Single().EntryValue);
     }
 
     [TestMethod]
@@ -70,8 +69,8 @@ public class SafeDbServiceTest
         await safeDbService.WriteAsync(
             "master password",
             [
-                new() { Name = "test group 1", Entries = new List<SafeEntry>{ new() { Name = "grp 1 entry 1", EncryptedValue = "a" }, new() { Name = "grp 1 entry 2", EncryptedValue = "b" } } },
-                new() { Name = "test group 2", Entries = new List<SafeEntry>{ new() { Name = "grp 2 entry 1", EncryptedValue = "c" } } }
+                new() { Name = "test group 1", Entries = [new() { Name = "grp 1 entry 1", EntryValue = "a" }, new() { Name = "grp 1 entry 2", EntryValue = "b" }] },
+                new() { Name = "test group 2", Entries = [new() { Name = "grp 2 entry 1", EntryValue = "c" }] }
             ],
             mem);
         await mem.FlushAsync();
@@ -113,7 +112,7 @@ public class SafeDbServiceTest
         // invalid json
         mem.SetLength(0);
         var invalidJson = Encoding.UTF8.GetBytes("{ not json ");
-        await mem.WriteAsync(invalidJson, 0, invalidJson.Length);
+        await mem.WriteAsync(invalidJson);
 
         await Assert.ThrowsExactlyAsync<JsonException>(async () => await safeDbService.ReadAsync("master password", mem));
     }

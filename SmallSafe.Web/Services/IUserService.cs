@@ -9,7 +9,7 @@ public interface IUserService
     Task<UserAccount> GetUserAsync(ClaimsPrincipal user);
     Task<UserAccount?> GetUserByEmailAsync(string email);    
     Task<UserAccount> CreateUserAsync(string email, byte[] credentialId, byte[] publicKey, byte[] userHandle);
-    Task UpdateUserDbAsync(UserAccount user, string safeDb);
+    Task UpdateUserDbAsync(UserAccount user, byte[] safeDb);
     Task UpdateUserDropboxAsync(UserAccount user, string? dropboxAccessToken, string? dropboxRefreshToken);
     Task LoginSuccessAsync(UserAccount user);
     Task LoginFailureAsync(UserAccount user);

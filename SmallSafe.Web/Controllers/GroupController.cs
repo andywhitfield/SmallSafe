@@ -7,32 +7,20 @@ using SmallSafe.Web.ViewModels.Group;
 namespace SmallSafe.Web.Controllers;
 
 [Authorize(Policy = TwoFactorRequirement.PolicyName)]
-public class GroupController : Controller
+public class GroupController(ILogger<GroupController> logger, IUserService userService,
+    IAuthorizationSession authorizationSession, ISafeDbReadWriteService safeDbReadWriteService)
+    : Controller
 {
-    private readonly ILogger<GroupController> _logger;
-    private readonly IUserService _userService;
-    private readonly IAuthorizationSession _authorizationSession;
-    private readonly ISafeDbReadWriteService _safeDbReadWriteService;
-
-    public GroupController(ILogger<GroupController> logger, IUserService userService,
-        IAuthorizationSession authorizationSession, ISafeDbReadWriteService safeDbReadWriteService)
-    {
-        _logger = logger;
-        _userService = userService;
-        _authorizationSession = authorizationSession;
-        _safeDbReadWriteService = safeDbReadWriteService;
-    }
-
     [HttpGet("~/group/{groupId:guid}")]
     public async Task<IActionResult> Index(Guid groupId)
     {
-        _logger.LogDebug($"Viewing group {groupId}");
-        var user = await _userService.GetUserAsync(User);
-        var groups = await _safeDbReadWriteService.ReadGroupsAsync(user, _authorizationSession.MasterPassword);
-        var group = groups.FirstOrDefault(g => g.Id == groupId);
+        logger.LogDebug("Viewing group {GroupId}", groupId);
+        var user = await userService.GetUserAsync(User);
+        var groups = await safeDbReadWriteService.ReadGroupsAsync(user, authorizationSession.MasterPassword);
+        var group = groups.Where(g => g.DeletedTimestamp == null).FirstOrDefault(g => g.Id == groupId);
         if (group == null)
         {
-            _logger.LogWarning($"Group [{groupId}] not found, redirecting to home page");
+            logger.LogWarning("Group [{GroupId}] not found, redirecting to home page", groupId);
             return Redirect("~/");
         }
 
@@ -44,24 +32,21 @@ public class GroupController : Controller
     {
         if (string.IsNullOrEmpty(name))
         {
-            _logger.LogDebug("No group name provided, redirecting to home page");
+            logger.LogDebug("No group name provided, redirecting to home page");
             return Redirect("~/");
         }
 
-        _logger.LogDebug($"Adding new group {name}");
-        var user = await _userService.GetUserAsync(User);
-        var groups = await _safeDbReadWriteService.ReadGroupsAsync(user, _authorizationSession.MasterPassword);
-        if (groups.Any(g => string.Equals(g.Name, name, StringComparison.OrdinalIgnoreCase)))
+        logger.LogDebug("Adding new group {Name}", name);
+        var user = await userService.GetUserAsync(User);
+        var groups = await safeDbReadWriteService.ReadGroupsAsync(user, authorizationSession.MasterPassword);
+        if (groups.Any(g => g.DeletedTimestamp == null && string.Equals(g.Name, name, StringComparison.OrdinalIgnoreCase)))
         {
-            _logger.LogError($"Group with name [{name}] already exists, cannot add a duplicate");
+            logger.LogError("Group with name [{Name}] already exists, cannot add a duplicate", name);
             return Redirect("~/");
         }
 
-        await _safeDbReadWriteService.WriteGroupsAsync(user, _authorizationSession.MasterPassword, groups.Append(new()
-        {
-            Name = name
-        }));
-        _logger.LogDebug($"Successfully added new group {name}");
+        await safeDbReadWriteService.WriteGroupsAsync(user, authorizationSession.MasterPassword, groups.Append(new() { Name = name }));
+        logger.LogDebug("Successfully added new group {Name}", name);
 
         return Redirect("~/");
     }
@@ -69,11 +54,20 @@ public class GroupController : Controller
     [HttpPost("~/group/{groupId:guid}/delete"), ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteGroup(Guid groupId)
     {
-        _logger.LogDebug($"Deleting safe group {groupId}");
-        var user = await _userService.GetUserAsync(User);
-        var groups = await _safeDbReadWriteService.ReadGroupsAsync(user, _authorizationSession.MasterPassword);
-        await _safeDbReadWriteService.WriteGroupsAsync(user, _authorizationSession.MasterPassword, groups.Where(g => g.Id != groupId));
-        _logger.LogDebug("Successfully saved groups");
+        logger.LogDebug("Deleting safe group {GroupId}", groupId);
+        var user = await userService.GetUserAsync(User);
+        var groups = await safeDbReadWriteService.ReadGroupsAsync(user, authorizationSession.MasterPassword);
+        var group = groups.Where(g => g.DeletedTimestamp == null).FirstOrDefault(g => g.Id == groupId);
+        if (group == null)
+        {
+            logger.LogWarning("Cannot find group with id [{GroupId}] to delete (possibly already deleted), nothing to do", groupId);
+        }
+        else
+        {
+            group.DeletedTimestamp = DateTime.UtcNow;
+            await safeDbReadWriteService.WriteGroupsAsync(user, authorizationSession.MasterPassword, groups);
+            logger.LogDebug("Successfully saved groups");
+        }
 
         return Redirect("~/");
     }
@@ -81,11 +75,11 @@ public class GroupController : Controller
     [HttpPost("~/group/sort"), ValidateAntiForgeryToken]
     public async Task<IActionResult> SortGroups()
     {
-        _logger.LogDebug("Sorting safe groups by name");
-        var user = await _userService.GetUserAsync(User);
-        var groups = await _safeDbReadWriteService.ReadGroupsAsync(user, _authorizationSession.MasterPassword);
-        await _safeDbReadWriteService.WriteGroupsAsync(user, _authorizationSession.MasterPassword, groups.OrderBy(g => g.Name?.ToLowerInvariant()));
-        _logger.LogDebug("Successfully saved groups");
+        logger.LogDebug("Sorting safe groups by name");
+        var user = await userService.GetUserAsync(User);
+        var groups = await safeDbReadWriteService.ReadGroupsAsync(user, authorizationSession.MasterPassword);
+        await safeDbReadWriteService.WriteGroupsAsync(user, authorizationSession.MasterPassword, groups.OrderBy(g => g.Name?.ToLowerInvariant()));
+        logger.LogDebug("Successfully saved groups");
 
         return Redirect("~/");
     }

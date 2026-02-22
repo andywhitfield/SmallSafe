@@ -1,8 +1,6 @@
 using System.Net;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SmallSafe.Secure;
 using SmallSafe.Secure.Model;
 using SmallSafe.Web.Data;
 using SmallSafe.Web.Services;
@@ -23,10 +21,8 @@ public class ProfileTest
         using var context = serviceScope.ServiceProvider.GetRequiredService<SqliteDataContext>();
         context.Migrate();
         var user = await context.UserAccounts!.AddAsync(new() { Email = "test-user-1", TwoFactorKey = "test-key" });
-        await context.SaveChangesAsync();
-        
-        var (encrypted, iv, salt) = await serviceScope.ServiceProvider.GetRequiredService<IEncryptDecrypt>().EncryptAsync("test-pw", "entry encrypted value");
-        await serviceScope.ServiceProvider.GetRequiredService<ISafeDbReadWriteService>().WriteGroupsAsync(user.Entity, "test-pw", new SafeGroup[] { new() { Id = _groupId, Name = "test group 1", Entries = new List<SafeEntry> { new() { Id = _entryId, Name = "test entry", EncryptedValue = encrypted, IV = iv, Salt = salt } } } });
+        await context.SaveChangesAsync();        
+        await serviceScope.ServiceProvider.GetRequiredService<ISafeDbReadWriteService>().WriteGroupsAsync(user.Entity, "test-pw", new SafeGroup[] { new() { Id = _groupId, Name = "test group 1", Entries = new List<SafeEntry> { new() { Id = _entryId, Name = "test entry", EntryValue = "test entry value" } } } });
     }
 
     [TestMethod]
@@ -43,7 +39,7 @@ public class ProfileTest
         responseContent.Should().Contain("test group 1");
         responseContent.Should().Contain("test entry");
         responseContent = await client.GetStringAsync($"/api/group/{_groupId}/entry/{_entryId}");
-        responseContent.Should().Contain("entry encrypted value");
+        responseContent.Should().Contain("test entry value");
 
         // now change the master password
         responseContent = await (await client.GetAsync("/profile")).Content.ReadAsStringAsync();
@@ -58,7 +54,7 @@ public class ProfileTest
         responseContent.Should().Contain("test group 1");
         responseContent.Should().Contain("test entry");
         responseContent = await client.GetStringAsync($"/api/group/{_groupId}/entry/{_entryId}");
-        responseContent.Should().Contain("entry encrypted value");
+        responseContent.Should().Contain("test entry value");
     }
 
     public async Task<string> ChangePasswordAsync(HttpClient client, string page)

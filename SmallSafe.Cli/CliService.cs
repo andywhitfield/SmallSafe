@@ -1,25 +1,13 @@
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Extensions.Logging;
-using SmallSafe.Secure;
 using SmallSafe.Secure.Model;
 using SmallSafe.Secure.Services;
 
 namespace SmallSafe.Cli;
 
-public class CliService
+public class CliService(ILogger<CliService> logger, ISafeDbService safeDbService)
 {
-    private readonly ILogger<CliService> _logger;
-    private readonly ISafeDbService _safeDbService;
-    private readonly IEncryptDecrypt _encryptDecrypt;
-
-    public CliService(ILogger<CliService> logger, ISafeDbService safeDbService, IEncryptDecrypt encryptDecrypt)
-    {
-        _logger = logger;
-        _safeDbService = safeDbService;
-        _encryptDecrypt = encryptDecrypt;
-    }
-
     public async Task ExecuteAsync(string? safeDbFile)
     {
         var masterPassword = "";
@@ -30,28 +18,28 @@ public class CliService
                 break;
 
             if (!firstPass || !string.IsNullOrWhiteSpace(safeDbFile))
-                _logger.LogWarning($"Password Safe DB '{safeDbFile}' does not exist, please try again.");
+                logger.LogWarning("Password Safe DB '{SafeDbFile}' does not exist, please try again.", safeDbFile);
 
             firstPass = false;
 
-            _logger.LogInformation("1. Choose an existing Safe DB file");
-            _logger.LogInformation("2. Create a new Safe DB file");
-            _logger.LogInformation("x. Exit");
+            logger.LogInformation("1. Choose an existing Safe DB file");
+            logger.LogInformation("2. Create a new Safe DB file");
+            logger.LogInformation("x. Exit");
 
             var selection = Console.ReadLine();
             switch (selection?.Trim())
             {
                 case "1":
-                    _logger.LogInformation("Enter Safe DB file:");
+                    logger.LogInformation("Enter Safe DB file:");
                     safeDbFile = Console.ReadLine();
                     break;
                 case "2":
-                    _logger.LogInformation("Enter Safe DB file:");
+                    logger.LogInformation("Enter Safe DB file:");
                     safeDbFile = Console.ReadLine();
 
                     if (string.IsNullOrEmpty(safeDbFile))
                     {
-                        _logger.LogWarning("No file entered, try again.");
+                        logger.LogWarning("No file entered, try again.");
                         firstPass = true;
                         safeDbFile = null;
                         break;
@@ -59,13 +47,13 @@ public class CliService
 
                     if (File.Exists(safeDbFile))
                     {
-                        _logger.LogWarning("File already exists. To create a new Safe DB file, please enter a new filename. Or choose option 1 to open an existing Safe DB file.");
+                        logger.LogWarning("File already exists. To create a new Safe DB file, please enter a new filename. Or choose option 1 to open an existing Safe DB file.");
                         firstPass = true;
                         safeDbFile = null;
                         break;
                     }
 
-                    _logger.LogInformation("Enter a new master password. Ensure it is a strong password - ideally a long passphrase using a combination of uppercase and lowercase letters, numbers, and punctuation.");
+                    logger.LogInformation("Enter a new master password. Ensure it is a strong password - ideally a long passphrase using a combination of uppercase and lowercase letters, numbers, and punctuation.");
                     ConsoleKeyInfo key;
                     StringBuilder enteredMasterPassword = new();
                     while ((key = Console.ReadKey(true)).Key != ConsoleKey.Enter)
@@ -78,13 +66,13 @@ public class CliService
 
                     if (masterPassword.Length == 0)
                     {
-                        _logger.LogWarning("No master password entered, try again.");
+                        logger.LogWarning("No master password entered, try again.");
                         firstPass = true;
                         safeDbFile = null;
                         break;
                     }
 
-                    _logger.LogInformation("Re-type your new master password:");
+                    logger.LogInformation("Re-type your new master password:");
                     enteredMasterPassword.Clear();
                     while ((key = Console.ReadKey(true)).Key != ConsoleKey.Enter)
                     {
@@ -95,7 +83,7 @@ public class CliService
 
                     if (masterPassword != enteredMasterPassword.ToString())
                     {
-                        _logger.LogWarning("Master passwords do not match, try again.");
+                        logger.LogWarning("Master passwords do not match, try again.");
                         firstPass = true;
                         safeDbFile = null;
                         break;
@@ -107,35 +95,35 @@ public class CliService
                 case "x":
                     return;
                 default:
-                    _logger.LogWarning("Unknown option, try again");
+                    logger.LogWarning("Unknown option, try again");
                     firstPass = true;
                     safeDbFile = null;
                     break;
             }
         }
 
-        _logger.LogInformation($"Using password safe db {safeDbFile}...");
+        logger.LogInformation("Using password safe db {SafeDbFile}...", safeDbFile);
 
         if (string.IsNullOrEmpty(masterPassword))
         {
             while (true)
             {
-                _logger.LogInformation("Enter the master password for the Safe DB:");
+                logger.LogInformation("Enter the master password for the Safe DB:");
                 masterPassword = ReadConsolePassword();
                 if (masterPassword.Length == 0)
                 {
-                    _logger.LogWarning("No master password entered, try again.");
+                    logger.LogWarning("No master password entered, try again.");
                     continue;
                 }
 
                 try
                 {
                     await using FileStream fileStream = new(safeDbFile, FileMode.Open, FileAccess.Read);
-                    await _safeDbService.ReadAsync(masterPassword, fileStream);
+                    await safeDbService.ReadAsync(masterPassword, fileStream);
                 }
                 catch (CryptographicException)
                 {
-                    _logger.LogWarning("Cannot read Safe DB using the given password, try again");
+                    logger.LogWarning("Cannot read Safe DB using the given password, try again");
                     continue;
                 }
 
@@ -152,63 +140,63 @@ public class CliService
         {
             var safeGroups = await ReadSafeGroupsAsync(safeDbFile, masterPassword);
 
-            _logger.LogInformation("Groups:");
-            if (!safeGroups.Any())
+            logger.LogInformation("Groups:");
+            if (!safeGroups.Any(g => g.DeletedTimestamp == null))
             {
-                _logger.LogInformation(" <no groups>");
+                logger.LogInformation(" <no groups>");
             }
             else
             {
                 var groupNum = 1;
-                foreach (var safeGroup in safeGroups)
-                    _logger.LogInformation($"{groupNum++}. {safeGroup.Name}");
+                foreach (var safeGroup in safeGroups.Where(g => g.DeletedTimestamp == null))
+                    logger.LogInformation("{GroupNum}. {SafeGroupName}", groupNum++, safeGroup.Name);
             }
 
-            _logger.LogInformation("");
-            _logger.LogInformation("n. Create a new group");
-            _logger.LogInformation("x. Exit");
+            logger.LogInformation("");
+            logger.LogInformation("n. Create a new group");
+            logger.LogInformation("x. Exit");
 
             var selection = Console.ReadLine();
             switch (selection)
             {
                 case "n":
-                    _logger.LogInformation("Enter the name of the new group:");
+                    logger.LogInformation("Enter the name of the new group:");
                     var newGroupName = Console.ReadLine();
                     if (string.IsNullOrWhiteSpace(newGroupName))
                     {
-                        _logger.LogWarning("No name entered, try again.");
+                        logger.LogWarning("No name entered, try again.");
                         break;
                     }
 
                     newGroupName = newGroupName.Trim();
-                    if (safeGroups.Any(g => string.Equals(g.Name, newGroupName, StringComparison.OrdinalIgnoreCase)))
+                    if (safeGroups.Any(g => g.DeletedTimestamp == null && string.Equals(g.Name, newGroupName, StringComparison.OrdinalIgnoreCase)))
                     {
-                        _logger.LogWarning($"Group '{newGroupName}' already exists, try again.");
+                        logger.LogWarning("Group '{NewGroupName}' already exists, try again.", newGroupName);
                         break;
                     }
 
                     safeGroups = safeGroups.Append(new() { Name = newGroupName });
                     await WriteSafeGroupsAsync(safeDbFile, masterPassword, safeGroups);
-                    await ManageSafeDbGroupAsync(safeDbFile, masterPassword, safeGroups, safeGroups.Single(x => x.Name == newGroupName));
+                    await ManageSafeDbGroupAsync(safeDbFile, masterPassword, safeGroups, safeGroups.Single(x => x.DeletedTimestamp == null && x.Name == newGroupName));
                     break;
                 case "x":
                     return;
                 default:
                     // is it a valid group number
                     SafeGroup? selectedGroup;
-                    if (int.TryParse(selection, out var groupNum) && groupNum > 0 && groupNum <= safeGroups.Count() && (selectedGroup = safeGroups.ElementAtOrDefault(groupNum - 1)) != null)
+                    if (int.TryParse(selection, out var groupNum) && groupNum > 0 && groupNum <= safeGroups.Count() && (selectedGroup = safeGroups.Where(g => g.DeletedTimestamp == null).ElementAtOrDefault(groupNum - 1)) != null)
                     {
                         await ManageSafeDbGroupAsync(safeDbFile, masterPassword, safeGroups, selectedGroup);
                     }
                     else
                     {
-                        _logger.LogWarning("Unknown option");
+                        logger.LogWarning("Unknown option");
                     }
                     break;
             }
         }
     }
-    private string ReadConsolePassword()
+    private static string ReadConsolePassword()
     {
         ConsoleKeyInfo key;
         StringBuilder enteredPasswordValue = new();
@@ -225,42 +213,40 @@ public class CliService
     {
         while (true)
         {
-            _logger.LogInformation($"Group: {safeGroup.Name}");
-            _logger.LogInformation("Entries:");
-            if (!(safeGroup.Entries?.Any() ?? false))
+            logger.LogInformation("Group: {SafeGroupName}", safeGroup.Name);
+            logger.LogInformation("Entries:");
+            if (safeGroup.Entries?.Any(e => e.DeletedTimestamp == null) != true)
             {
-                _logger.LogInformation(" <no password entries in group>");
+                logger.LogInformation(" <no password entries in group>");
             }
             else
             {
                 var entryNum = 1;
-                foreach (var entry in safeGroup.Entries)
-                    _logger.LogInformation($"{entryNum++}. {entry.Name}");
+                foreach (var entry in safeGroup.Entries.Where(e => e.DeletedTimestamp == null))
+                    logger.LogInformation("{EntryNum}. {EntryName}", entryNum++, entry.Name);
             }
 
-            _logger.LogInformation("");
-            _logger.LogInformation("n. Create a new entry in this group");
-            _logger.LogInformation("d. Delete this group, and all entries in the group");
-            _logger.LogInformation("x. Back");
+            logger.LogInformation("");
+            logger.LogInformation("n. Create a new entry in this group");
+            logger.LogInformation("d. Delete this group, and all entries in the group");
+            logger.LogInformation("x. Back");
 
             var selection = Console.ReadLine();
             switch (selection)
             {
                 case "n":
-                    _logger.LogInformation("Enter the name of the new entry (optional):");
+                    logger.LogInformation("Enter the name of the new entry (optional):");
                     var newEntryName = (Console.ReadLine() ?? "").Trim();
 
-                    _logger.LogInformation("Enter the value to be encrypted for the new entry:");
+                    logger.LogInformation("Enter the value to be encrypted for the new entry:");
                     var newValue = ReadConsolePassword();
-                    var (encryptedValue, iv, salt) = await _encryptDecrypt.EncryptAsync(masterPassword, newValue);
-
-                    safeGroup.Entries ??= new List<SafeEntry>();
-                    safeGroup.Entries.Add(new() { Name = newEntryName, EncryptedValue = encryptedValue, IV = iv, Salt = salt });
+                    safeGroup.Entries ??= [];
+                    safeGroup.Entries.Add(new() { Name = newEntryName, EntryValue = newValue });
                     await WriteSafeGroupsAsync(safeDbFile, masterPassword, safeGroups);
 
                     break;
                 case "d":
-                    safeGroups = safeGroups.Where(g => g.Name != safeGroup.Name);
+                    safeGroup.DeletedTimestamp = DateTime.UtcNow;
                     await WriteSafeGroupsAsync(safeDbFile, masterPassword, safeGroups);
                     return;
                 case "x":
@@ -268,13 +254,13 @@ public class CliService
                 default:
                     // is it a valid entry number
                     SafeEntry? selectedEntry;
-                    if (safeGroup.Entries != null && int.TryParse(selection, out var entryNum) && entryNum > 0 && entryNum <= safeGroup.Entries.Count() && (selectedEntry = safeGroup.Entries.ElementAtOrDefault(entryNum - 1)) != null)
+                    if (safeGroup.Entries != null && int.TryParse(selection, out var entryNum) && entryNum > 0 && entryNum <= safeGroup.Entries.Count(e => e.DeletedTimestamp == null) && (selectedEntry = safeGroup.Entries.Where(e => e.DeletedTimestamp == null).ElementAtOrDefault(entryNum - 1)) != null)
                     {
                         await ManageSafeDbEntryAsync(safeDbFile, masterPassword, safeGroups, safeGroup, selectedEntry);
                     }
                     else
                     {
-                        _logger.LogWarning("Unknown option");
+                        logger.LogWarning("Unknown option");
                     }
                     break;
             }
@@ -285,59 +271,58 @@ public class CliService
     {
         while (true)
         {
-            _logger.LogInformation("1. View");
-            _logger.LogInformation("2. Edit");
-            _logger.LogInformation("3. Delete");
-            _logger.LogInformation("x. Back");
+            logger.LogInformation("1. View");
+            logger.LogInformation("2. Edit");
+            logger.LogInformation("3. Delete");
+            logger.LogInformation("x. Back");
 
             var selection = Console.ReadLine();
             switch (selection)
             {
                 case "1":
-                    _logger.LogInformation($"Group: {safeGroup.Name}");
-                    _logger.LogInformation($"Entry: {safeEntry.Name}");
-                    if (safeEntry.IV == null || safeEntry.Salt == null || safeEntry.EncryptedValue == null)
-                    {
-                        _logger.LogError("Encrypted value is corrupt");
-                        break;
-                    }
+                    logger.LogInformation("Group: {SafeGroupName}", safeGroup.Name);
+                    logger.LogInformation("Entry: {SafeEntryName}", safeEntry.Name);
 
-                    _logger.LogInformation("Encrypted value:");
-                    _logger.LogInformation("---");
-                    _logger.LogInformation(await _encryptDecrypt.DecryptAsync(masterPassword, safeEntry.IV, safeEntry.Salt, safeEntry.EncryptedValue));
-                    _logger.LogInformation("---");
-                    _logger.LogInformation("");
+                    logger.LogInformation("Entry value:");
+                    logger.LogInformation("---");
+                    logger.LogInformation(safeEntry.EntryValue);
+                    logger.LogInformation("---");
+                    logger.LogInformation("");
                     break;
                 case "2":
-                    _logger.LogInformation("Enter the new name of the new entry (optional):");
+                    logger.LogInformation("Enter the new name of the new entry (optional):");
                     var entryNewName = (Console.ReadLine() ?? "").Trim();
 
-                    _logger.LogInformation("Enter the new value to be encrypted for the entry:");
+                    logger.LogInformation("Enter the new value for the entry:");
                     var entryNewValue = ReadConsolePassword();
-                    var (encryptedValue, iv, salt) = await _encryptDecrypt.EncryptAsync(masterPassword, entryNewValue);
+
+                    if (safeGroup.PreserveHistory)
+                    {
+                        safeGroup.EntriesHistory ??= [];
+                        safeGroup.EntriesHistory.Add(new()
+                        {
+                            Id = safeEntry.Id,
+                            Name = safeEntry.Name,
+                            EntryValue = safeEntry.EntryValue,
+                            CreatedTimestamp = safeEntry.CreatedTimestamp,
+                            UpdatedTimestamp = safeEntry.UpdatedTimestamp
+                        });
+                    }
 
                     safeEntry.Name = entryNewName;
-                    safeEntry.EncryptedValue = encryptedValue;
-                    safeEntry.IV = iv;
-                    safeEntry.Salt = salt;
+                    safeEntry.EntryValue = entryNewValue;
+                    safeEntry.UpdatedTimestamp = DateTime.UtcNow;
                     await WriteSafeGroupsAsync(safeDbFile, masterPassword, safeGroups);
 
                     break;
                 case "3":
-                    if (safeGroup.Entries?.Remove(safeEntry) ?? false)
-                    {
-                        await WriteSafeGroupsAsync(safeDbFile, masterPassword, safeGroups);
-                        return;
-                    }
-                    else
-                    {
-                        _logger.LogError("Could not remove entry");
-                    }
-                    break;
+                    safeEntry.DeletedTimestamp = DateTime.UtcNow;
+                    await WriteSafeGroupsAsync(safeDbFile, masterPassword, safeGroups);
+                    return;
                 case "x":
                     return;
                 default:
-                    _logger.LogWarning("Unknown option, try again");
+                    logger.LogWarning("Unknown option, try again");
                     break;
             }
         }
@@ -346,12 +331,12 @@ public class CliService
     private async Task<IEnumerable<SafeGroup>> ReadSafeGroupsAsync(string safeDbFile, string masterPassword)
     {
         await using FileStream fileStream = new(safeDbFile, FileMode.Open, FileAccess.Read);
-        return await _safeDbService.ReadAsync(masterPassword, fileStream);
+        return await safeDbService.ReadAsync(masterPassword, fileStream);
     }
 
     private async Task WriteSafeGroupsAsync(string safeDbFile, string masterPassword, IEnumerable<SafeGroup> safeGroups)
     {
         await using FileStream fileStream = new(safeDbFile, FileMode.Create, FileAccess.Write);
-        await _safeDbService.WriteAsync(masterPassword, safeGroups, fileStream);
+        await safeDbService.WriteAsync(masterPassword, safeGroups, fileStream);
     }
 }

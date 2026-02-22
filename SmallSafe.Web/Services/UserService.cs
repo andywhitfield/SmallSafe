@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using System.Text;
 using Dropbox.Api;
 using Dropbox.Api.Files;
 using Microsoft.EntityFrameworkCore;
@@ -9,8 +8,11 @@ using SmallSafe.Web.Data.Models;
 
 namespace SmallSafe.Web.Services;
 
-public class UserService(ILogger<UserService> logger, IOptionsSnapshot<DropboxConfig> dropboxConfig,
-    SqliteDataContext dbContext) : IUserService
+public class UserService(
+    ILogger<UserService> logger,
+    IOptionsSnapshot<DropboxConfig> dropboxConfig,
+    SqliteDataContext dbContext)
+    : IUserService
 {
     public async Task<bool> IsNewUserAsync(ClaimsPrincipal user)
     {
@@ -47,9 +49,9 @@ public class UserService(ILogger<UserService> logger, IOptionsSnapshot<DropboxCo
         return newUser.Entity;
     }
 
-    public async Task UpdateUserDbAsync(UserAccount user, string safeDb)
+    public async Task UpdateUserDbAsync(UserAccount user, byte[] safeDb)
     {
-        user.SafeDb = safeDb;
+        user.EncyptedSafeDb = safeDb;
         user.LastUpdateDateTime = DateTime.UtcNow;
 
         if (user.IsConnectedToDropbox)
@@ -95,14 +97,14 @@ public class UserService(ILogger<UserService> logger, IOptionsSnapshot<DropboxCo
 
     private async Task CopyToDropboxAsync(UserAccount user)
     {
-        logger.LogInformation($"Saving SafeDB file to Dropbox for user {user.UserAccountId}");
+        logger.LogInformation("Saving SafeDB file to Dropbox for user {UserAccountId}", user.UserAccountId);
 
-        using MemoryStream contentStream = new(Encoding.ASCII.GetBytes(user.SafeDb ?? ""));
+        using MemoryStream contentStream = new(user.EncyptedSafeDb ?? []);
         using DropboxClient dropboxClient = new(user.DropboxAccessToken, user.DropboxRefreshToken,
             dropboxConfig.Value.SmallSafeAppKey, dropboxConfig.Value.SmallSafeAppSecret, new DropboxClientConfig());
         if (!await dropboxClient.RefreshAccessToken(["files.content.write"]))
         {
-            logger.LogError($"Could not refresh Dropbox access token for user {user.UserAccountId}");
+            logger.LogError("Could not refresh Dropbox access token for user {UserAccountId}", user.UserAccountId);
             return;
         }
 
@@ -110,6 +112,6 @@ public class UserService(ILogger<UserService> logger, IOptionsSnapshot<DropboxCo
             $"/{dropboxConfig.Value.Filename ?? "smallsafe.db.json"}",
             WriteMode.Overwrite.Instance,
             body: contentStream);
-        logger.LogTrace($"Saved to dropbox {file.PathDisplay}/{file.Name} rev {file.Rev}");
+        logger.LogTrace("Saved to dropbox {FilePathDisplay}/{FileName} rev {FileRev}", file.PathDisplay, file.Name, file.Rev);
     }
 }

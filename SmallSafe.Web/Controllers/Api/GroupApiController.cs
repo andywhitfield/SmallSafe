@@ -6,46 +6,35 @@ using SmallSafe.Web.Services;
 namespace SmallSafe.Web.Controllers.Api;
 
 [ApiController, Authorize(Policy = TwoFactorRequirement.PolicyName)]
-public class GroupApiController : ControllerBase
+public class GroupApiController(
+    ILogger<GroupApiController> logger,
+    IUserService userService,
+    IAuthorizationSession authorizationSession,
+    ISafeDbReadWriteService safeDbReadWriteService)
+    : ControllerBase
 {
-    private readonly ILogger<GroupApiController> _logger;
-    private readonly IUserService _userService;
-    private readonly IAuthorizationSession _authorizationSession;
-    private readonly ISafeDbReadWriteService _safeDbReadWriteService;
-
-    public GroupApiController(ILogger<GroupApiController> logger,
-        IUserService userService,
-        IAuthorizationSession authorizationSession,
-        ISafeDbReadWriteService safeDbReadWriteService)
-    {
-        _logger = logger;
-        _userService = userService;
-        _authorizationSession = authorizationSession;
-        _safeDbReadWriteService = safeDbReadWriteService;
-    }
-
     [HttpPost("~/api/group/{groupId:guid}/move")]
     public async Task<ActionResult> MoveGroup(Guid groupId, [FromForm] Guid? prevGroupId)
     {
-        _logger.LogDebug($"Moving group {groupId} to be after {prevGroupId}");
+        logger.LogDebug("Moving group {GroupId} to be after {PrevGroupId}", groupId, prevGroupId);
 
-        var user = await _userService.GetUserAsync(User);
-        var groups = await _safeDbReadWriteService.ReadGroupsAsync(user, _authorizationSession.MasterPassword);
-        var group = groups.FirstOrDefault(g => g.Id == groupId);
+        var user = await userService.GetUserAsync(User);
+        var groups = await safeDbReadWriteService.ReadGroupsAsync(user, authorizationSession.MasterPassword);
+        var group = groups.FirstOrDefault(g => g.DeletedTimestamp == null && g.Id == groupId);
         if (group == null)
         {
-            _logger.LogError($"Group [{groupId}] not found");
+            logger.LogError("Group [{GroupId}] not found", groupId);
             return BadRequest();
         }
 
-        var prevGroup = groups.FirstOrDefault(g => g.Id == prevGroupId);
+        var prevGroup = groups.FirstOrDefault(g => g.DeletedTimestamp == null && g.Id == prevGroupId);
         if (prevGroup == null && prevGroupId != null)
         {
-            _logger.LogError($"Previous group [{prevGroupId}] not found");
+            logger.LogError("Previous group [{PrevGroupId}] not found", prevGroupId);
             return BadRequest();
         }
 
-        await _safeDbReadWriteService.WriteGroupsAsync(user, _authorizationSession.MasterPassword, groups.Move(group, prevGroup, g => g.Id));
+        await safeDbReadWriteService.WriteGroupsAsync(user, authorizationSession.MasterPassword, groups.Move(group, prevGroup, g => g.Id));
         return Ok();
     }
 }
