@@ -39,7 +39,7 @@ public class AuthorizationSession(ILogger<AuthorizationSession> logger,
         session.SetString("pw", masterPassword);
     }
 
-        public async Task<(bool IsReturningUser, string VerifyOptions)> HandleSigninRequest(string email, CancellationToken cancellationToken)
+    public async Task<(bool IsReturningUser, string VerifyOptions)> HandleSigninRequest(string email, CancellationToken cancellationToken)
     {
         UserAccount? user;
         string options;

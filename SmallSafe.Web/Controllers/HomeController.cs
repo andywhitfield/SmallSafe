@@ -24,6 +24,10 @@ public class HomeController(
             return Redirect("~/signin");
         }
 
+        // temporary logic to migrate the user db
+        if (authorizationSession.IsValidated)
+            await userService.MigrateSafeDbIfNeededAsync(User, authorizationSession.MasterPassword);
+
         if (await userService.IsNewUserAsync(User))
         {
             logger.LogInformation("User is new, redirecting to new user setup page");

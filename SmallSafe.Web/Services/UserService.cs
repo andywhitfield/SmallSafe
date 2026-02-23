@@ -3,6 +3,9 @@ using Dropbox.Api;
 using Dropbox.Api.Files;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using SmallSafe.Secure;
+using SmallSafe.Secure.Model;
+using SmallSafe.Secure.Services;
 using SmallSafe.Web.Data;
 using SmallSafe.Web.Data.Models;
 
@@ -11,7 +14,9 @@ namespace SmallSafe.Web.Services;
 public class UserService(
     ILogger<UserService> logger,
     IOptionsSnapshot<DropboxConfig> dropboxConfig,
-    SqliteDataContext dbContext)
+    SqliteDataContext dbContext,
+    IEncryptDecrypt encryptDecrypt,
+    ISafeDbService safeDbService)
     : IUserService
 {
     public async Task<bool> IsNewUserAsync(ClaimsPrincipal user)
@@ -113,5 +118,84 @@ public class UserService(
             WriteMode.Overwrite.Instance,
             body: contentStream);
         logger.LogTrace("Saved to dropbox {FilePathDisplay}/{FileName} rev {FileRev}", file.PathDisplay, file.Name, file.Rev);
+    }
+
+    public async Task MigrateSafeDbIfNeededAsync(ClaimsPrincipal user, string masterPassword)
+    {
+        var email = GetEmailFromPrincipal(user);
+        var userAccount = await dbContext.UserAccounts!.FirstOrDefaultAsync(ua => ua.Email == email && ua.DeletedDateTime == null);
+        if (userAccount != null && !string.IsNullOrEmpty(userAccount.TwoFactorKey) && userAccount.SafeDb != null)
+        {
+            logger.LogInformation("Migrating SafeDB for user {UserAccountId} with email {Email}", userAccount.UserAccountId, userAccount.Email);
+            var legacySafeDb = System.Text.Json.JsonSerializer.Deserialize<LegacySafeDb>(userAccount.SafeDb);
+            if (legacySafeDb != null && legacySafeDb.IV != null && legacySafeDb.Salt != null && legacySafeDb.EncryptedSafeGroups != null)
+            {
+                logger.LogDebug("Deserialized legacy safedb");
+                List<SafeGroup> newGroups = [];
+                var legacySerializedGroups = await encryptDecrypt.DecryptAsync(masterPassword, legacySafeDb.IV, legacySafeDb.Salt, Convert.FromBase64String(legacySafeDb.EncryptedSafeGroups));
+                var legacyGroups = System.Text.Json.JsonSerializer.Deserialize<IEnumerable<LegacySafeGroup>>(legacySerializedGroups);
+                foreach (var legacyGroup in legacyGroups ?? [])
+                {
+                    logger.LogDebug("Migrating group {GroupName}", legacyGroup.Name);
+                    SafeGroup newGroup = new()
+                    {
+                        Id = legacyGroup.Id,
+                        Name = legacyGroup.Name,
+                        Entries = []
+                    };
+                    foreach (var legacyEntry in legacyGroup.Entries ?? [])
+                    {
+                        if (legacyEntry.IV == null || legacyEntry.Salt == null || legacyEntry.EncryptedValue == null)
+                        {
+                            logger.LogWarning("Legacy entry {EntryName} in group {GroupName} is missing encryption parameters, skipping entry", legacyEntry.Name, legacyGroup.Name);
+                            continue;
+                        }
+
+                        logger.LogDebug("Group {LegacyGroupName}, migrating entry {EntryName}", legacyGroup.Name, legacyEntry.Name);
+                        newGroup.Entries.Add(new SafeEntry()
+                        {
+                            Id = legacyEntry.Id,
+                            Name = legacyEntry.Name,
+                            EntryValue = await encryptDecrypt.DecryptAsync(masterPassword, legacyEntry.IV, legacyEntry.Salt, Convert.FromBase64String(legacyEntry.EncryptedValue))
+                        });
+                    }
+                    newGroups.Add(newGroup);
+                }
+
+                await using MemoryStream stream = new();
+                await safeDbService.WriteAsync(masterPassword, newGroups, stream);
+
+                userAccount.SafeDb = null;
+                userAccount.EncyptedSafeDb = stream.ToArray();
+                await dbContext.SaveChangesAsync();
+            }
+            else
+            {
+                logger.LogWarning("User {UserAccountId} has a safedb that cannot be migrated, skipping migration", userAccount.UserAccountId);
+            }
+        }
+    }
+
+    class LegacySafeDb
+    {
+        public byte[]? IV { get; set; }
+        public byte[]? Salt { get; set; }
+        public string? EncryptedSafeGroups { get; set; }
+    }
+
+    class LegacySafeGroup
+    {
+        public Guid Id { get; set; }
+        public string? Name { get; set; }
+        public List<LegacySafeEntry>? Entries { get; set; }
+    }
+
+    class LegacySafeEntry
+    {
+        public Guid Id { get; set; }
+        public string? Name { get; set; }
+        public string? EncryptedValue { get; set; }
+        public byte[]? IV { get; set; }
+        public byte[]? Salt { get; set; }
     }
 }
