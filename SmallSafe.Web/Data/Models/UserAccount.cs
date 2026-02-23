@@ -14,7 +14,6 @@ public class UserAccount
     public DateTime? LastTwoFactorSuccess { get; set; }
     public DateTime? LastTwoFactorFailure { get; set; }
     public int TwoFactorFailureCount { get; set; }
-    public string? SafeDb { get; set; }
     public byte[]? EncyptedSafeDb { get; set; }
     public string? DropboxAccessToken { get; set; }
     public string? DropboxRefreshToken { get; set; }
