@@ -23,7 +23,7 @@ public class UserService(
     {
         var email = GetEmailFromPrincipal(user);
         var userAccount = await dbContext.UserAccounts!.FirstOrDefaultAsync(ua => ua.Email == email && ua.DeletedDateTime == null);
-        return userAccount == null || !userAccount.IsAccountConfigured;
+        return (userAccount == null || !userAccount.IsAccountConfigured) && userAccount?.SafeDb == null;
     }
 
     public async Task<UserAccount> GetUserAsync(ClaimsPrincipal user)

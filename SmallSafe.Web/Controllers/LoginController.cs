@@ -105,6 +105,9 @@ public class LoginController(ILogger<LoginController> logger,
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> TwoFactorLogin([FromForm] string? masterpassword, [FromForm] string? twofa, [FromForm] string? returnUrl)
     {
+        // temporary logic to migrate the user db
+        await userService.MigrateSafeDbIfNeededAsync(User, masterpassword ?? "");
+
         var user = await userService.GetUserAsync(User);
         if (!string.IsNullOrEmpty(masterpassword) &&
             await safeDbReadWriteService.TryReadGroupsAsync(user, masterpassword) != null &&
