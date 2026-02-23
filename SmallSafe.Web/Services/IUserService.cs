@@ -6,7 +6,6 @@ namespace SmallSafe.Web.Services;
 public interface IUserService
 {
     Task<bool> IsNewUserAsync(ClaimsPrincipal user);
-    Task MigrateSafeDbIfNeededAsync(ClaimsPrincipal user, string masterPassword);
     Task<UserAccount> GetUserAsync(ClaimsPrincipal user);
     Task<UserAccount?> GetUserByEmailAsync(string email);    
     Task<UserAccount> CreateUserAsync(string email, byte[] credentialId, byte[] publicKey, byte[] userHandle);
