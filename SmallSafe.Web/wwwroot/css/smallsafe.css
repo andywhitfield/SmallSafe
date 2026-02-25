@@ -244,6 +244,10 @@ button.ss-delete {
     min-width: 110px;
 }
 
+.ss-audit-info {
+    font-size: 10pt;
+}
+
 body.dragging,
 body.dragging * {
     cursor: move !important;

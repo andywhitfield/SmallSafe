@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmallSafe.Web.Authorization;
 using SmallSafe.Web.Services;
+using SmallSafe.Web.ViewModels.GroupEntry;
 
 namespace SmallSafe.Web.Controllers;
 
@@ -110,5 +111,22 @@ public class GroupEntryController(
         }
 
         return Redirect($"~/group/{groupId}");
+    }
+
+    [HttpGet("~/group/{groupId:guid}/history/{entryId:guid}")]
+    public async Task<IActionResult> EntryHistory(Guid groupId, Guid entryId)
+    {
+        logger.LogDebug("Viewing entry history for group {GroupId} and entry {EntryId}", groupId, entryId);
+        var user = await userService.GetUserAsync(User);
+        var groups = await safeDbReadWriteService.ReadGroupsAsync(user, authorizationSession.MasterPassword);
+        var group = groups.Where(g => g.DeletedTimestamp == null).FirstOrDefault(g => g.Id == groupId);
+        if (group == null)
+        {
+            logger.LogWarning("Group [{GroupId}] not found, redirecting to home page", groupId);
+            return Redirect("~/");
+        }
+        var entryHistory = group.Entries?.Where(e => e.Id == entryId).Concat(group.EntriesHistory?.Where(e => e.Id == entryId).Reverse() ?? []).ToList() ?? [];
+        logger.LogDebug("Found {EntryHistoryCount} history entries for entry {EntryId} in group {GroupId}", entryHistory.Count, entryId, groupId);
+        return View(new EntryHistoryViewModel(HttpContext, group, entryHistory));
     }
 }

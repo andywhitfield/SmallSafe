@@ -1,0 +1,54 @@
+﻿@model SmallSafe.Web.ViewModels.GroupEntry.EntryHistoryViewModel
+
+<article>
+    <div class="ss-group-toolbar">
+    <a href="~/group/@Model.Group.Id">&lt; Back</a>
+    </div>
+
+    <p>
+        @Model.Group.Name
+        <button title="Copy group name to the clipboard" data-clipboard="@Model.Group.Name"><img src="/images/copy.png" height="15" width="15" /></button>
+    </p>
+    <div class="ss-audit-info">Created: @Model.EntryHistory.FirstOrDefault()?.CreatedTimestamp.ToString("yyyy-MM-dd HH:mm:ss")</div>
+
+    <ul class="ss-list">
+        <li class="ss-list">
+            <ul class="ss-list-item">
+                @foreach (var safeEntry in Model.EntryHistory) {
+                <li class="ss-list-item" data-group="@Model.Group.Id" data-entry="@safeEntry.Id" data-asof="@safeEntry.UpdatedTimestamp.ToString("o")" data-filter="@safeEntry.Name">
+                    <div></div>
+                    <div></div>
+                    <div class="ss-list-item-entry">
+                        <div>
+                            @if (!string.IsNullOrEmpty(safeEntry.Name)) {
+                                @safeEntry.Name
+                                <button title="Copy entry name to the clipboard" data-clipboard="@safeEntry.Name"><img src="/images/copy.png" height="15" width="15" /></button>
+                            }
+                        </div>
+                        <div>
+                            <div class="ss-hidden-value">***</div>
+                            <div class="ss-visible-value ss-value"><textarea></textarea></div>
+                        </div>
+                        <div>
+                            <button class="ss-hidden-value ss-show-value" title="Show encrypted value"><img src="/images/add.png" height="15" width="15" /> Show</button>
+                            <button class="ss-visible-value ss-hide-value" title="Hide encrypted value"><img src="/images/del.png" height="15" width="15" /> Hide</button>
+                            <button class="ss-hidden-value ss-decrypt-value" title="Decrypt and copy the value to the clipboad"><img src="/images/copy.png" height="15" width="15" /> Decrypt</button>
+                            <button class="ss-visible-value ss-copy-value" title="Copy encrypted value to the clipboard"><img src="/images/copy.png" height="15" width="15" /> Copy</button>
+                            <textarea id="newencryptedvalue" name="newencryptedvalue"></textarea>
+                        </div>
+                    </div>
+                    <div class="ss-audit-info">
+                        Updated: @safeEntry.UpdatedTimestamp.ToString("yyyy-MM-dd HH:mm:ss")
+                    </div>
+                </li>
+                }
+            </ul>
+        </li>
+    </ul>
+</article>
+
+@section Scripts {
+<script type="text/javascript">
+    $(function() { ssInitialiseSafeEntry(); });
+</script>
+}

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SmallSafe.Secure.Model;
 using SmallSafe.Web.Authorization;
 using SmallSafe.Web.Services;
 using SmallSafe.Web.ViewModels.Api;
@@ -15,9 +16,9 @@ public class GroupEntryApiController(
     : ControllerBase
 {
     [HttpGet("~/api/group/{groupId:guid}/entry/{entryId:guid}")]
-    public async Task<ActionResult<DecryptResult>> DecryptSafeEntry(Guid groupId, Guid entryId)
+    public async Task<ActionResult<DecryptResult>> DecryptSafeEntry(Guid groupId, Guid entryId, [FromQuery] DateTime? asof = null)
     {
-        logger.LogDebug("Decrypting safe db entry {EntryId} for group {GroupId}", entryId, groupId);
+        logger.LogDebug("Decrypting safe db entry {EntryId} for group {GroupId} for asof/update date {AsOf}", entryId, groupId, asof);
         var user = await userService.GetUserAsync(User);
         var groups = await safeDbReadWriteService.ReadGroupsAsync(user, authorizationSession.MasterPassword);
         var group = groups.FirstOrDefault(g => g.Id == groupId);
@@ -27,13 +28,21 @@ public class GroupEntryApiController(
             return BadRequest();
         }
 
-        var entry = group.Entries?.Find(e => e.DeletedTimestamp == null && e.Id == entryId);
+        SafeEntry? entry;
+        if (asof != null)
+        {
+            entry = (group.Entries ?? []).Concat(group.EntriesHistory ?? []).FirstOrDefault(e => e.Id == entryId && e.UpdatedTimestamp == asof);
+        }
+        else
+        {
+            entry = group.Entries?.Find(e => e.DeletedTimestamp == null && e.Id == entryId);
+        }
+
         if (entry == null)
         {
             logger.LogError("Entry [{EntryId}] not found in group [{GroupId}]", entryId, groupId);
             return BadRequest();
         }
-
         return new DecryptResult(entry.EntryValue ?? "");
     }
 

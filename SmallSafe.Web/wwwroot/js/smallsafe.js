@@ -123,8 +123,9 @@ function ssInitialiseSafeEntry() {
         let $entryGroup = $(this).parentsUntil('li.ss-list-item').parent();
         let $groupId = $entryGroup.attr('data-group');
         let $entryId = $entryGroup.attr('data-entry');
+        let $asOf = (typeof $entryGroup.attr('data-asof') !== 'undefined') ? $entryGroup.attr('data-asof') : '';
 
-        $.getJSON('/api/group/' + $groupId + '/entry/' + $entryId)
+        $.getJSON('/api/group/' + $groupId + '/entry/' + $entryId + '?asof=' + encodeURIComponent($asOf))
             .done(function(data) {
                 $('textarea', $entryGroup).val(data.value);
                 $('.ss-hidden-value', $entryGroup).hide();
@@ -136,8 +137,9 @@ function ssInitialiseSafeEntry() {
         let $entryGroup = $(this).parentsUntil('li.ss-list-item').parent();
         let $groupId = $entryGroup.attr('data-group');
         let $entryId = $entryGroup.attr('data-entry');
+        let $asOf = (typeof $entryGroup.attr('data-asof') !== 'undefined') ? $entryGroup.attr('data-asof') : '';
 
-        $.getJSON('/api/group/' + $groupId + '/entry/' + $entryId)
+        $.getJSON('/api/group/' + $groupId + '/entry/' + $entryId + '?asof=' + encodeURIComponent($asOf))
             .done(function(data) {
                 $('textarea', $entryGroup).val(data.value);
                 $('button.ss-decrypt-value', $entryGroup).hide();

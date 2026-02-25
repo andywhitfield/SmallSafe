@@ -104,7 +104,7 @@ public class Startup
             .AddDbContext<SqliteDataContext>((serviceProvider, options) =>
             {
                 var sqliteConnectionString = serviceProvider.GetRequiredService<IConfiguration>().GetConnectionString("SmallSafe");
-                serviceProvider.GetRequiredService<ILogger<SqliteDataContext>>().LogInformation($"Using connection string: {sqliteConnectionString}");
+                serviceProvider.GetRequiredService<ILogger<SqliteDataContext>>().LogInformation("Using connection string: {SqliteConnectionString}", sqliteConnectionString);
                 options.UseSqlite(sqliteConnectionString);
             })
             .AddScoped(sp => (ISqliteDataContext)sp.GetRequiredService<SqliteDataContext>())
@@ -117,7 +117,7 @@ public class Startup
             .AddSingleton<IWordDictionary, WordDictionary>();
     }
 
-    public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
+    public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
     {
         if (env.IsDevelopment())
             app.UseDeveloperExceptionPage();
