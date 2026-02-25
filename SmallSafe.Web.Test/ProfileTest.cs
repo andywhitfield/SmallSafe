@@ -22,7 +22,7 @@ public class ProfileTest
         context.Migrate();
         var user = await context.UserAccounts!.AddAsync(new() { Email = "test-user-1", TwoFactorKey = "test-key" });
         await context.SaveChangesAsync();        
-        await serviceScope.ServiceProvider.GetRequiredService<ISafeDbReadWriteService>().WriteGroupsAsync(user.Entity, "test-pw", new SafeGroup[] { new() { Id = _groupId, Name = "test group 1", Entries = new List<SafeEntry> { new() { Id = _entryId, Name = "test entry", EntryValue = "test entry value" } } } });
+        await serviceScope.ServiceProvider.GetRequiredService<ISafeDbReadWriteService>().WriteGroupsAsync(user.Entity, "test-pw", [new() { Id = _groupId, Name = "test group 1", Entries = [new() { Id = _entryId, Name = "test entry", EntryValue = "test entry value" }] }]);
     }
 
     [TestMethod]
@@ -57,7 +57,7 @@ public class ProfileTest
         responseContent.Should().Contain("test entry value");
     }
 
-    public async Task<string> ChangePasswordAsync(HttpClient client, string page)
+    private static async Task<string> ChangePasswordAsync(HttpClient client, string page)
     {
         var loginAction = "/profile/password";
         var validationToken = TestWebApplicationFactory.GetFormValidationToken(page, loginAction);

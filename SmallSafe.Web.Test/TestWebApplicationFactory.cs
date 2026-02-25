@@ -48,6 +48,15 @@ public class TestWebApplicationFactory : WebApplicationFactory<Startup>
         return client;
     }
 
+    public async Task<HttpClient> GetLoggedInClient()
+    {
+        var client = CreateAuthenticatedClient();
+        var response = await client.GetAsync("/");
+        response.EnsureSuccessStatusCode();
+        await LoginAsync(client, await response.Content.ReadAsStringAsync());
+        return client;
+    }
+
     protected override void Dispose(bool disposing)
     {
         base.Dispose(disposing);
