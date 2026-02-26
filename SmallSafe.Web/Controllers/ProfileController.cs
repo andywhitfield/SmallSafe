@@ -10,7 +10,7 @@ using SmallSafe.Web.ViewModels.Profile;
 
 namespace SmallSafe.Web.Controllers;
 
-[Authorize(Policy = TwoFactorRequirement.PolicyName)]
+[Authorize, Authorize(Policy = TwoFactorRequirement.PolicyName)]
 public class ProfileController(
     ILogger<ProfileController> logger,
     IOptionsSnapshot<DropboxConfig> dropboxConfig,

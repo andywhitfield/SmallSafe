@@ -6,13 +6,13 @@ using SmallSafe.Web.ViewModels.Group;
 
 namespace SmallSafe.Web.Controllers;
 
-[Authorize(Policy = TwoFactorRequirement.PolicyName)]
+[Authorize, Authorize(Policy = TwoFactorRequirement.PolicyName)]
 public class GroupController(ILogger<GroupController> logger, IUserService userService,
     IAuthorizationSession authorizationSession, ISafeDbReadWriteService safeDbReadWriteService)
     : Controller
 {
     [HttpGet("~/group/{groupId:guid}")]
-    public async Task<IActionResult> Index(Guid groupId)
+    public async Task<IActionResult> Index(Guid groupId, [FromQuery] bool? showdeleted)
     {
         logger.LogDebug("Viewing group {GroupId}", groupId);
         var user = await userService.GetUserAsync(User);
@@ -24,7 +24,7 @@ public class GroupController(ILogger<GroupController> logger, IUserService userS
             return Redirect("~/");
         }
 
-        return View(new IndexViewModel(HttpContext, group));
+        return View(new IndexViewModel(HttpContext, group, showdeleted ?? false));
     }
 
     [HttpPost("~/group"), ValidateAntiForgeryToken]

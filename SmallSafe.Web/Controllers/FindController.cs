@@ -6,7 +6,7 @@ using SmallSafe.Web.ViewModels.Find;
 
 namespace SmallSafe.Web.Controllers;
 
-[Authorize(Policy = TwoFactorRequirement.PolicyName)]
+[Authorize, Authorize(Policy = TwoFactorRequirement.PolicyName)]
 public class FindController(ILogger<FindController> logger, IUserService userService,
     IAuthorizationSession authorizationSession, ISafeDbReadWriteService safeDbReadWriteService)
     : Controller

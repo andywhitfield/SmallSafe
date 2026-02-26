@@ -2,7 +2,7 @@
 
 <article>
     <div class="ss-group-toolbar">
-    <a href="~/">&lt; Back</a> | <form method="post" action="/group/@Model.Group.Id/sort">@Html.AntiForgeryToken()<button title="Sort entires by name">Sort by name</button></form> | <input type="text" name="filter" placeholder="Filter..." />
+    <a href="~/">&lt; Back</a> | <form method="post" action="/group/@Model.Group.Id/sort">@Html.AntiForgeryToken()<button title="Sort entires by name">Sort by name</button></form> | <input type="text" name="filter" placeholder="Filter..." /> | <form method="get" action="/group/@Model.Group.Id"><input type="checkbox" id="showdeleted" name="showdeleted" value="true" onChange="this.form.submit()" @if (Model.ShowDeleted) {<text>checked </text>}/><label for="showdeleted"> Show deleted</label></form>
     </div>
 
     <p>
@@ -10,11 +10,11 @@
         <button title="Copy group name to the clipboard" data-clipboard="@Model.Group.Name"><img src="/images/copy.png" height="15" width="15" /></button>
     </p>
 
-    @if (Model.Group.Entries?.Any() ?? false) {
+    @if (Model.Entries.Any()) {
     <ul class="ss-list">
         <li class="ss-list">
             <ul class="ss-list-item">
-                @foreach (var safeEntry in Model.Group.Entries) {
+                @foreach (var safeEntry in Model.Entries) {
                 <li class="ss-list-item" data-group="@Model.Group.Id" data-entry="@safeEntry.Id" data-filter="@safeEntry.Name">
                     <div><img class="ss-list-item-drag-handle" src="/images/drag.png" height="26" width="22" title="Move" /></div>
                     <div></div>
@@ -43,10 +43,14 @@
                         </div>
                     </div>
                     <div>
+                        @if (safeEntry.DeletedTimestamp == null) {
                         <form data-confirm="Are you sure you want to delete this entry?" method="post" action="/group/@Model.Group.Id/delete/@safeEntry.Id">
                         @Html.AntiForgeryToken()
                         <button class="ss-delete" title="Delete"><img src="/images/close.png" height="15" width="15" /> Delete</button>
                         </form>
+                        } else {
+                        <span>Deleted: @safeEntry.DeletedTimestamp.Value.ToString("yyyy-MM-dd HH:mm:ss")</span>
+                        }
                     </div>
                 </li>
                 }

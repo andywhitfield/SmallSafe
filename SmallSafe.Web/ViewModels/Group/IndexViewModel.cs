@@ -2,9 +2,9 @@ using SmallSafe.Secure.Model;
 
 namespace SmallSafe.Web.ViewModels.Group;
 
-public class IndexViewModel : BaseViewModel
+public class IndexViewModel(HttpContext context, SafeGroup group, bool showDeleted) : BaseViewModel(context)
 {
-    public IndexViewModel(HttpContext context, SafeGroup group) : base(context) => Group = group;
-
-    public SafeGroup Group { get; }
+    public SafeGroup Group { get; } = group;
+    public IEnumerable<SafeEntry> Entries => Group.Entries?.Where(e => ShowDeleted || e.DeletedTimestamp == null) ?? [];
+    public bool ShowDeleted { get; } = showDeleted;
 }

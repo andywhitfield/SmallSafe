@@ -6,7 +6,7 @@ using SmallSafe.Web.ViewModels.GroupEntry;
 
 namespace SmallSafe.Web.Controllers;
 
-[Authorize(Policy = TwoFactorRequirement.PolicyName)]
+[Authorize, Authorize(Policy = TwoFactorRequirement.PolicyName)]
 public class GroupEntryController(
     ILogger<GroupEntryController> logger,
     IUserService userService,
@@ -47,10 +47,24 @@ public class GroupEntryController(
         logger.LogDebug("Deleting safe entry {EntryId} from group {GroupId}", entryId, groupId);
         var user = await userService.GetUserAsync(User);
         var groups = await safeDbReadWriteService.ReadGroupsAsync(user, authorizationSession.MasterPassword);
-        var entry = groups.FirstOrDefault(g => g.DeletedTimestamp == null && g.Id == groupId)?.Entries?.FirstOrDefault(e => e.DeletedTimestamp == null && e.Id == entryId);
-        if (entry != null)
+        var group = groups.FirstOrDefault(g => g.DeletedTimestamp == null && g.Id == groupId);
+        var entry = group?.Entries?.FirstOrDefault(e => e.DeletedTimestamp == null && e.Id == entryId);
+        if (group != null && entry != null)
         {
-            entry.DeletedTimestamp = DateTime.UtcNow;
+            if (group.PreserveHistory)
+            {
+                group.EntriesHistory ??= [];
+                group.EntriesHistory.Add(new()
+                {
+                    Id = entry.Id,
+                    Name = entry.Name,
+                    EntryValue = entry.EntryValue,
+                    CreatedTimestamp = entry.CreatedTimestamp,
+                    UpdatedTimestamp = entry.UpdatedTimestamp
+                });
+            }
+
+            entry.DeletedTimestamp = entry.UpdatedTimestamp = DateTime.UtcNow;
             await safeDbReadWriteService.WriteGroupsAsync(user, authorizationSession.MasterPassword, groups);
             logger.LogDebug("Successfully saved groups");
         }
