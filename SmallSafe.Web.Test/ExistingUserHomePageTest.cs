@@ -1,7 +1,6 @@
 using System.Net;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SmallSafe.Secure.Model;
 using SmallSafe.Web.Data;
 using SmallSafe.Web.Services;
@@ -49,5 +48,5 @@ public class ExistingUserHomePageTest
     }
 
     [TestCleanup]
-    public void Cleanup() => _factory.Dispose();
+    public ValueTask Cleanup() => _factory.DisposeAsync();
 }
