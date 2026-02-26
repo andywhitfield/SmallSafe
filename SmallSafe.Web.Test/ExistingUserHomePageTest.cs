@@ -27,7 +27,7 @@ public class ExistingUserHomePageTest
     public async Task Given_existing_user_Should_display_welcome_back_page()
     {
         using var client = _factory.CreateAuthenticatedClient();
-        var response = await client.GetAsync("/");
+        using var response = await client.GetAsync("/");
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var responseContent = await response.Content.ReadAsStringAsync();
         responseContent.Should().Contain("Logout")
@@ -41,7 +41,7 @@ public class ExistingUserHomePageTest
     {
         using var client = _factory.CreateAuthenticatedClient();
 
-        var response = await client.GetAsync("/");
+        using var response = await client.GetAsync("/");
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var responseContent = await _factory.LoginAsync(client, await response.Content.ReadAsStringAsync());
         responseContent.Should().Contain("You have no groups");

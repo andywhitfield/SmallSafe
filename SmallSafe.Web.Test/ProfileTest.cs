@@ -1,7 +1,6 @@
 using System.Net;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
-using SmallSafe.Secure.Model;
 using SmallSafe.Web.Data;
 using SmallSafe.Web.Services;
 
@@ -30,7 +29,7 @@ public class ProfileTest
     {
         using var client = _factory.CreateAuthenticatedClient();
 
-        var response = await client.GetAsync("/");
+        using var response = await client.GetAsync("/");
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var responseContent = await _factory.LoginAsync(client, await response.Content.ReadAsStringAsync());
         responseContent.Should().Contain("test group 1");
