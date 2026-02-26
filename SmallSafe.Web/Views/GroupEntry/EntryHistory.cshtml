@@ -2,7 +2,7 @@
 
 <article>
     <div class="ss-group-toolbar">
-    <a href="~/group/@Model.Group.Id">&lt; Back</a>
+    <a href="~/group/@Model.Group.Id">&lt; Back</a> | <form method="post" action="/group/@Model.Group.Id/history/@Model.EntryId/delete" data-confirm="Are you sure you want to delete all audit history for this entry?">@Html.AntiForgeryToken()<button title="Delete all the audit history for this entry">Delete all audit history</button></form>
     </div>
 
     <p>

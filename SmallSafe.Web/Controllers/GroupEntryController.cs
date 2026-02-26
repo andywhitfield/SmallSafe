@@ -127,6 +127,27 @@ public class GroupEntryController(
         }
         var entryHistory = group.Entries?.Where(e => e.Id == entryId).Concat(group.EntriesHistory?.Where(e => e.Id == entryId).Reverse() ?? []).ToList() ?? [];
         logger.LogDebug("Found {EntryHistoryCount} history entries for entry {EntryId} in group {GroupId}", entryHistory.Count, entryId, groupId);
-        return View(new EntryHistoryViewModel(HttpContext, group, entryHistory));
+        return View(new EntryHistoryViewModel(HttpContext, group, entryId, entryHistory));
+    }
+
+    [HttpPost("~/group/{groupId:guid}/history/{entryId:guid}/delete"), ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteEntryHistory(Guid groupId, Guid entryId)
+    {
+        logger.LogDebug("Deleting all safe entry history for group {GroupId} and entry {EntryId}", groupId, entryId);
+        var user = await userService.GetUserAsync(User);
+        var groups = await safeDbReadWriteService.ReadGroupsAsync(user, authorizationSession.MasterPassword);
+        var group = groups.FirstOrDefault(g => g.DeletedTimestamp == null && g.Id == groupId);
+        if (group == null)
+        {
+            logger.LogWarning("Group [{GroupId}] not found, redirecting to home page", groupId);
+            return Redirect("~/");
+        }
+        
+        var removed = group.EntriesHistory?.RemoveAll(e => e.Id == entryId);
+        logger.LogInformation("Removed {RemovedCount} history entries for entry {EntryId} in group {GroupId}", removed, entryId, groupId);
+        if (removed > 0)
+            await safeDbReadWriteService.WriteGroupsAsync(user, authorizationSession.MasterPassword, groups);
+
+        return Redirect($"~/group/{groupId}");
     }
 }
