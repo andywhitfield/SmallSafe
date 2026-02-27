@@ -35,7 +35,7 @@ public class GroupEntryApiController(
         }
         else
         {
-            entry = group.Entries?.Find(e => e.DeletedTimestamp == null && e.Id == entryId);
+            entry = group.Entries?.Find(e => e.Id == entryId);
         }
 
         if (entry == null)
@@ -60,14 +60,14 @@ public class GroupEntryApiController(
             return BadRequest();
         }
 
-        var entry = group.Entries?.Find(e => e.DeletedTimestamp == null && e.Id == entryId);
+        var entry = group.Entries?.Find(e => e.Id == entryId);
         if (entry == null)
         {
             logger.LogError("Entry [{EntryId}] not found", entryId);
             return BadRequest();
         }
 
-        var prevEntry = group.Entries?.Find(e => e.DeletedTimestamp == null && e.Id == prevEntryId);
+        var prevEntry = group.Entries?.Find(e => e.Id == prevEntryId);
         if (prevEntry == null && prevEntryId != null)
         {
             logger.LogError("Previous entry [{PrevEntryId}] not found", prevEntryId);

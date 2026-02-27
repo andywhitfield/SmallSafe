@@ -14,9 +14,11 @@ public class GroupEntryApiControllerTest
     private const string _groupIdGuid = "5d420ab6-f970-40cf-8236-6efb94ec2f23";
     private const string _entry1IdGuid = "8e343b15-dac4-471d-8b6a-7aa45a2355b5";
     private const string _entry2IdGuid = "d4201785-2692-48dd-a68f-2a946f3a4800";
+    private const string _entry3IdGuid = "0c8c7f2d-0c8c-4f2d-8c7f-2d0c8c7f2d0c";
     private static readonly Guid _groupId = Guid.ParseExact(_groupIdGuid, "D");
     private static readonly Guid _entry1Id = Guid.ParseExact(_entry1IdGuid, "D");
     private static readonly Guid _entry2Id = Guid.ParseExact(_entry2IdGuid, "D");
+    private static readonly Guid _entry3Id = Guid.ParseExact(_entry3IdGuid, "D");
     private readonly TestWebApplicationFactory _factory = new();
     private readonly DateTime _now = DateTime.UtcNow;
 
@@ -33,7 +35,8 @@ public class GroupEntryApiControllerTest
             "test-pw", [
                 new() { Id = _groupId, Name = "test group 1", Entries = [
                     new() { Id = _entry1Id, Name = "test entry 1", EntryValue = "test entry value 1", UpdatedTimestamp = _now.AddMinutes(-1) },
-                    new() { Id = _entry2Id, Name = "test entry 2", EntryValue = "test entry value 2", UpdatedTimestamp = _now.AddMinutes(-2) }
+                    new() { Id = _entry2Id, Name = "test entry 2", EntryValue = "test entry value 2", UpdatedTimestamp = _now.AddMinutes(-2) },
+                    new() { Id = _entry3Id, Name = "test entry 3", EntryValue = "test entry value 3", UpdatedTimestamp = _now.AddMinutes(-3), DeletedTimestamp = _now.AddMinutes(-3) }
                 ],
                 EntriesHistory = [
                     new() { Id = _entry1Id, Name = "test entry 1", EntryValue = "test entry value 1 hist 1", UpdatedTimestamp = _now.AddMinutes(-10) },
@@ -46,6 +49,7 @@ public class GroupEntryApiControllerTest
     [TestMethod]
     [DataRow(_entry1IdGuid, "test entry value 1")]
     [DataRow(_entry2IdGuid, "test entry value 2")]
+    [DataRow(_entry3IdGuid, "test entry value 3")]
     public async Task Get_entry_value(string entryIdGuid, string expectedEntryValue)
     {
         using var client = await _factory.GetLoggedInClient();

@@ -10,6 +10,9 @@
         <button title="Copy group name to the clipboard" data-clipboard="@Model.Group.Name"><img src="/images/copy.png" height="15" width="15" /></button>
     </p>
     <div class="ss-audit-info">Created: @Model.EntryHistory.FirstOrDefault()?.CreatedTimestamp.ToString("yyyy-MM-dd HH:mm:ss")</div>
+    @if (Model.DeletedTimestamp != null) {
+    <div class="ss-audit-info">Deleted: @Model.DeletedTimestamp.Value.ToString("yyyy-MM-dd HH:mm:ss")</div>
+    }
 
     <ul class="ss-list">
         <li class="ss-list">
@@ -39,6 +42,9 @@
                     </div>
                     <div class="ss-audit-info">
                         Updated: @safeEntry.UpdatedTimestamp.ToString("yyyy-MM-dd HH:mm:ss")
+                        @if (safeEntry.DeletedTimestamp != null) {
+                        <div class="ss-audit-info">Deleted: @safeEntry.DeletedTimestamp.Value.ToString("yyyy-MM-dd HH:mm:ss")</div>
+                        }
                     </div>
                 </li>
                 }

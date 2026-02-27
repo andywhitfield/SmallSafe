@@ -141,7 +141,7 @@ public class GroupEntryController(
         }
         var entryHistory = group.Entries?.Where(e => e.Id == entryId).Concat(group.EntriesHistory?.Where(e => e.Id == entryId).Reverse() ?? []).ToList() ?? [];
         logger.LogDebug("Found {EntryHistoryCount} history entries for entry {EntryId} in group {GroupId}", entryHistory.Count, entryId, groupId);
-        return View(new EntryHistoryViewModel(HttpContext, group, entryId, entryHistory));
+        return View(new EntryHistoryViewModel(HttpContext, group, entryId, group.Entries?.FirstOrDefault(e => e.Id == entryId)?.DeletedTimestamp, entryHistory));
     }
 
     [HttpPost("~/group/{groupId:guid}/history/{entryId:guid}/delete"), ValidateAntiForgeryToken]

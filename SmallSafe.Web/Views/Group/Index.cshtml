@@ -34,11 +34,15 @@
                             <button class="ss-visible-value ss-hide-value" title="Hide encrypted value"><img src="/images/del.png" height="15" width="15" /> Hide</button>
                             <button class="ss-hidden-value ss-decrypt-value" title="Decrypt and copy the value to the clipboad"><img src="/images/copy.png" height="15" width="15" /> Decrypt</button>
                             <button class="ss-visible-value ss-copy-value" title="Copy encrypted value to the clipboard"><img src="/images/copy.png" height="15" width="15" /> Copy</button>
+                            @if (safeEntry.DeletedTimestamp == null) {
                             <form data-confirm="Are you sure you want to update this entry?" method="post" action="/group/@Model.Group.Id/edit/@safeEntry.Id">
                             @Html.AntiForgeryToken()
                             <textarea id="newencryptedvalue" name="newencryptedvalue"></textarea>
                             <button class="ss-visible-value ss-save-value" title="Save the update encrypted value"><img src="/images/tick.png" height="15" width="15" /> Save</button>
                             </form>
+                            } else {
+                            <textarea id="newencryptedvalue" name="newencryptedvalue"></textarea>
+                            }
                             <a href="/group/@Model.Group.Id/history/@safeEntry.Id"><button title="Show the history and audit for this entry"><img src="/images/history.png" height="15" width="15" /> Audit</button></a>
                         </div>
                     </div>
