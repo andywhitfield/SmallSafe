@@ -2,7 +2,7 @@
 
 <article>
     <div class="ss-group-toolbar">
-    <form method="post" action="/group/sort">@Html.AntiForgeryToken()<button title="Sort groups by name">Sort by name</button></form> | <input type="text" name="filter" placeholder="Filter groups..." />
+    <form method="post" action="/group/sort">@Html.AntiForgeryToken()<button title="Sort groups by name">Sort by name</button></form> | <input type="text" name="filter" placeholder="Filter groups..." />  | <form method="get" action="/"><input type="checkbox" id="showdeleted" name="showdeleted" value="true" onChange="this.form.submit()" @if (Model.ShowDeleted) {<text>checked </text>}/><label for="showdeleted"> Show deleted</label></form>
     </div>
 
     @if (Model.Groups.Any()) {

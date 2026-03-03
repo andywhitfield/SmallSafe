@@ -53,7 +53,7 @@ public class GroupEntryApiController(
 
         var user = await userService.GetUserAsync(User);
         var groups = await safeDbReadWriteService.ReadGroupsAsync(user, authorizationSession.MasterPassword);
-        var group = groups.FirstOrDefault(g => g.DeletedTimestamp == null && g.Id == groupId);
+        var group = groups.FirstOrDefault(g => g.Id == groupId);
         if (group == null)
         {
             logger.LogError("Group [{GroupId}] not found", groupId);

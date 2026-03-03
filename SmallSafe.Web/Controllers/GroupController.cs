@@ -17,7 +17,7 @@ public class GroupController(ILogger<GroupController> logger, IUserService userS
         logger.LogDebug("Viewing group {GroupId}", groupId);
         var user = await userService.GetUserAsync(User);
         var groups = await safeDbReadWriteService.ReadGroupsAsync(user, authorizationSession.MasterPassword);
-        var group = groups.Where(g => g.DeletedTimestamp == null).FirstOrDefault(g => g.Id == groupId);
+        var group = groups.FirstOrDefault(g => g.Id == groupId);
         if (group == null)
         {
             logger.LogWarning("Group [{GroupId}] not found, redirecting to home page", groupId);

@@ -26,7 +26,7 @@ public class GroupEntryController(
         logger.LogDebug("Adding new entry {Name}", name);
         var user = await userService.GetUserAsync(User);
         var groups = await safeDbReadWriteService.ReadGroupsAsync(user, authorizationSession.MasterPassword);
-        var group = groups.FirstOrDefault(g => g.DeletedTimestamp == null && g.Id == groupId);
+        var group = groups.FirstOrDefault(g => g.Id == groupId);
         if (group == null)
         {
             logger.LogError("Group [{GroupId}] not found, redirecting to home page", groupId);
@@ -116,7 +116,7 @@ public class GroupEntryController(
         logger.LogDebug("Sorting safe entries for group {GroupId} by name", groupId);
         var user = await userService.GetUserAsync(User);
         var groups = await safeDbReadWriteService.ReadGroupsAsync(user, authorizationSession.MasterPassword);
-        var group = groups.FirstOrDefault(g => g.DeletedTimestamp == null && g.Id == groupId);
+        var group = groups.FirstOrDefault(g => g.Id == groupId);
         if (group != null)
         {
             group.Entries?.Sort((x, y) => string.Compare(x.Name ?? "", y.Name ?? "", StringComparison.InvariantCultureIgnoreCase));
@@ -133,7 +133,7 @@ public class GroupEntryController(
         logger.LogDebug("Viewing entry history for group {GroupId} and entry {EntryId}", groupId, entryId);
         var user = await userService.GetUserAsync(User);
         var groups = await safeDbReadWriteService.ReadGroupsAsync(user, authorizationSession.MasterPassword);
-        var group = groups.Where(g => g.DeletedTimestamp == null).FirstOrDefault(g => g.Id == groupId);
+        var group = groups.FirstOrDefault(g => g.Id == groupId);
         if (group == null)
         {
             logger.LogWarning("Group [{GroupId}] not found, redirecting to home page", groupId);

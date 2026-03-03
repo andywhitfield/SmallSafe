@@ -16,7 +16,7 @@ public class HomeController(
 {
     [Authorize]
     [HttpGet("~/")]
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index([FromQuery] bool? showdeleted)
     {
         if (User == null)
         {
@@ -38,8 +38,8 @@ public class HomeController(
 
         var user = await userService.GetUserAsync(User);
         var groups = await safeDbReadWriteService.ReadGroupsAsync(user, authorizationSession.MasterPassword);
-        logger.LogDebug("Got groups for user: [{Groups}]", string.Join(',', groups.Where(g => g.DeletedTimestamp == null).Select(g => g.Name)));
-        return View(new IndexViewModel(HttpContext, groups.Where(g => g.DeletedTimestamp == null)));
+        logger.LogDebug("Got groups for user: [{Groups}]", string.Join(',', groups.Select(g => g.Name)));
+        return View(new IndexViewModel(HttpContext, groups.Where(g => (showdeleted ?? false) || g.DeletedTimestamp == null), showdeleted ?? false));
     }
 
     public IActionResult Error() => View(new ErrorViewModel(HttpContext));
