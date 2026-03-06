@@ -57,14 +57,21 @@ public class GroupController(ILogger<GroupController> logger, IUserService userS
         logger.LogDebug("Deleting safe group {GroupId}", groupId);
         var user = await userService.GetUserAsync(User);
         var groups = await safeDbReadWriteService.ReadGroupsAsync(user, authorizationSession.MasterPassword);
-        var group = groups.Where(g => g.DeletedTimestamp == null).FirstOrDefault(g => g.Id == groupId);
+        var group = groups.FirstOrDefault(g => g.Id == groupId);
         if (group == null)
         {
             logger.LogWarning("Cannot find group with id [{GroupId}] to delete (possibly already deleted), nothing to do", groupId);
         }
-        else
+        else if (group.DeletedTimestamp == null)
         {
             group.DeletedTimestamp = DateTime.UtcNow;
+            await safeDbReadWriteService.WriteGroupsAsync(user, authorizationSession.MasterPassword, groups);
+            logger.LogDebug("Successfully saved groups");
+        }
+        else
+        {
+            logger.LogInformation("Permanently deleting group [{GroupId}]", groupId);
+            groups = [.. groups.Where(g => g.Id != groupId)];
             await safeDbReadWriteService.WriteGroupsAsync(user, authorizationSession.MasterPassword, groups);
             logger.LogDebug("Successfully saved groups");
         }
