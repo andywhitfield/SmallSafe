@@ -1,7 +1,6 @@
 using System.Net;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
-using SmallSafe.Secure.Model;
 using SmallSafe.Web.Data;
 using SmallSafe.Web.Services;
 
@@ -15,12 +14,12 @@ public class ExistingUserHomePageTest
     [TestInitialize]
     public async Task InitializeAsync()
     {
-        using var serviceScope = _factory.Services.CreateScope();
-        using var context = serviceScope.ServiceProvider.GetRequiredService<SqliteDataContext>();
+        await using var serviceScope = _factory.Services.CreateAsyncScope();
+        var context = serviceScope.ServiceProvider.GetRequiredService<SqliteDataContext>();
         context.Migrate();
         var user = await context.UserAccounts!.AddAsync(new() { Email = "test-user-1", TwoFactorKey = "test-key" });
         await context.SaveChangesAsync();
-        await serviceScope.ServiceProvider.GetRequiredService<ISafeDbReadWriteService>().WriteGroupsAsync(user.Entity, "test-pw", Enumerable.Empty<SafeGroup>());
+        await serviceScope.ServiceProvider.GetRequiredService<ISafeDbReadWriteService>().WriteGroupsAsync(user.Entity, "test-pw", []);
     }
 
     [TestMethod]
@@ -43,7 +42,7 @@ public class ExistingUserHomePageTest
 
         using var response = await client.GetAsync("/");
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var responseContent = await _factory.LoginAsync(client, await response.Content.ReadAsStringAsync());
+        var responseContent = await TestWebApplicationFactory.LoginAsync(client, await response.Content.ReadAsStringAsync());
         responseContent.Should().Contain("You have no groups");
     }
 

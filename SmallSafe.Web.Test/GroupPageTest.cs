@@ -22,8 +22,8 @@ public class GroupPageTest
     [TestInitialize]
     public async Task InitializeAsync()
     {
-        using var serviceScope = _factory.Services.CreateScope();
-        using var context = serviceScope.ServiceProvider.GetRequiredService<SqliteDataContext>();
+        await using var serviceScope = _factory.Services.CreateAsyncScope();
+        var context = serviceScope.ServiceProvider.GetRequiredService<SqliteDataContext>();
         context.Migrate();
         var user = await context.UserAccounts!.AddAsync(new() { Email = "test-user-1", TwoFactorKey = "test-key" });
         await context.SaveChangesAsync();

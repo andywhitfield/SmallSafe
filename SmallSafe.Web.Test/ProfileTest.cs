@@ -16,8 +16,8 @@ public class ProfileTest
     [TestInitialize]
     public async Task InitializeAsync()
     {
-        using var serviceScope = _factory.Services.CreateScope();
-        using var context = serviceScope.ServiceProvider.GetRequiredService<SqliteDataContext>();
+        await using var serviceScope = _factory.Services.CreateAsyncScope();
+        var context = serviceScope.ServiceProvider.GetRequiredService<SqliteDataContext>();
         context.Migrate();
         var user = await context.UserAccounts!.AddAsync(new() { Email = "test-user-1", TwoFactorKey = "test-key" });
         await context.SaveChangesAsync();        
@@ -31,7 +31,7 @@ public class ProfileTest
 
         using var response = await client.GetAsync("/");
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var responseContent = await _factory.LoginAsync(client, await response.Content.ReadAsStringAsync());
+        var responseContent = await TestWebApplicationFactory.LoginAsync(client, await response.Content.ReadAsStringAsync());
         responseContent.Should().Contain("test group 1");
         // decrypt entry 1 using old password
         responseContent = await client.GetStringAsync($"/group/{_groupId}");
@@ -61,12 +61,12 @@ public class ProfileTest
         var loginAction = "/profile/password";
         var validationToken = TestWebApplicationFactory.GetFormValidationToken(page, loginAction);
 
-        using var response = await client.PostAsync(loginAction, new FormUrlEncodedContent(new[] {
+        using var response = await client.PostAsync(loginAction, new FormUrlEncodedContent([
             KeyValuePair.Create("__RequestVerificationToken", validationToken),
             KeyValuePair.Create("currentpassword", "test-pw"),
             KeyValuePair.Create("newpassword", "new-test-pw"),
             KeyValuePair.Create("twofa", "123456")
-        }));
+        ]));
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         return await response.Content.ReadAsStringAsync();
     }

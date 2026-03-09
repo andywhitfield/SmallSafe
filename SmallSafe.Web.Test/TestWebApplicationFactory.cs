@@ -33,8 +33,8 @@ public class TestWebApplicationFactory : WebApplicationFactory<Startup>
         .CreateDefaultBuilder()
         .ConfigureWebHostDefaults(x => x.UseStartup<Startup>().UseTestServer().ConfigureTestServices(services =>
         {
-            services.Replace(ServiceDescriptor.Transient<ITwoFactor>(_ => _twoFactor.Object));
-            services.Replace(ServiceDescriptor.Scoped<SqliteDataContext>(_ => new SqliteDataContext(_options)));
+            services.Replace(ServiceDescriptor.Transient(_ => _twoFactor.Object));
+            services.Replace(ServiceDescriptor.Scoped(_ => new SqliteDataContext(_options)));
             services
                 .AddAuthentication("Test")
                 .AddScheme<AuthenticationSchemeOptions, TestStubAuthHandler>("Test", null);
@@ -51,7 +51,7 @@ public class TestWebApplicationFactory : WebApplicationFactory<Startup>
     public async Task<HttpClient> GetLoggedInClient()
     {
         var client = CreateAuthenticatedClient();
-        var response = await client.GetAsync("/");
+        using var response = await client.GetAsync("/");
         response.EnsureSuccessStatusCode();
         await LoginAsync(client, await response.Content.ReadAsStringAsync());
         return client;
@@ -74,10 +74,10 @@ public class TestWebApplicationFactory : WebApplicationFactory<Startup>
         return validationToken;
     }
 
-    public async Task<string> LoginAsync(HttpClient client, string page)
+    public static async Task<string> LoginAsync(HttpClient client, string page)
     {
         var loginAction = "/twofactor";
-        var validationToken = TestWebApplicationFactory.GetFormValidationToken(page, loginAction);
+        var validationToken = GetFormValidationToken(page, loginAction);
 
         using var response = await client.PostAsync(loginAction, new FormUrlEncodedContent(new[] {
             KeyValuePair.Create("__RequestVerificationToken", validationToken),
