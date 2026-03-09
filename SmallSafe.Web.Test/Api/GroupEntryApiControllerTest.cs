@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using SmallSafe.Web.Data;
 using SmallSafe.Web.Services;
@@ -25,8 +26,8 @@ public class GroupEntryApiControllerTest
     [TestInitialize]
     public async Task InitializeAsync()
     {
-        using var serviceScope = _factory.Services.CreateScope();
-        using var context = serviceScope.ServiceProvider.GetRequiredService<SqliteDataContext>();
+        await using var serviceScope = _factory.Services.CreateAsyncScope();
+        var context = serviceScope.ServiceProvider.GetRequiredService<SqliteDataContext>();
         context.Migrate();
         var user = await context.UserAccounts!.AddAsync(new() { Email = "test-user-1", TwoFactorKey = "test-key" });
         await context.SaveChangesAsync();
@@ -74,6 +75,34 @@ public class GroupEntryApiControllerTest
         var result = await response.Content.ReadFromJsonAsync<DecryptResult>();
         result.Should().NotBeNull();
         result.value.Should().Be(expectedEntryValue);
+    }
+
+    [TestMethod]
+    public async Task Get_entry_value_for_deleted_group()
+    {
+        Guid groupId = Guid.NewGuid();
+        Guid entryId = Guid.NewGuid();
+        await AddDeletedGroupAsync();
+
+        using var client = await _factory.GetLoggedInClient();
+        var response = await client.GetAsync($"/api/group/{groupId}/entry/{entryId}");
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var result = await response.Content.ReadFromJsonAsync<DecryptResult>();
+        result.Should().NotBeNull();
+        result.value.Should().Be("test deleted group entry value");
+
+        async Task AddDeletedGroupAsync()
+        {
+            await using var serviceScope = _factory.Services.CreateAsyncScope();
+            var context = serviceScope.ServiceProvider.GetRequiredService<SqliteDataContext>();
+            var user = await context.UserAccounts!.FirstAsync();
+
+            var safeDbReadWriteService = serviceScope.ServiceProvider.GetRequiredService<ISafeDbReadWriteService>();
+            var groups = await safeDbReadWriteService.ReadGroupsAsync(user, "test-pw");
+            groups = groups.Append(new() { Id = groupId, Name = "test deleted group", DeletedTimestamp = DateTime.UtcNow, Entries =
+                [new() { Id = entryId, Name = "test deleted group entry name", EntryValue = "test deleted group entry value"}]});
+            await safeDbReadWriteService.WriteGroupsAsync(user, "test-pw", groups);
+        }
     }
 
     [TestCleanup]
